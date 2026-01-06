@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('DDD Store - 홈')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: nav}"></nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="bg-light py-5">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="display-4 fw-bold">DDD Store에 오신 것을 환영합니다</h1>
+                        <p class="lead text-muted">
+                            Domain-Driven Design 원칙으로 설계된 현대적인 이커머스 플랫폼
+                        </p>
+                        <div class="mt-4">
+                            <a href="/shop" class="btn btn-primary btn-lg me-2">
+                                <i class="bi bi-grid"></i> 상품 둘러보기
+                            </a>
+                            <a href="/signup" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-person-plus"></i> 회원가입
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 text-center">
+                        <i class="bi bi-shop-window display-1 text-primary" style="font-size: 15rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-5">
+            <div class="container">
+                <h2 class="text-center mb-5">주요 기능</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-box-seam text-primary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title">간편한 주문</h5>
+                                <p class="card-text text-muted">
+                                    몇 번의 클릭만으로 원하는 상품을 주문하고 배송 상태를 실시간으로 확인하세요.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-credit-card text-primary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title">쿠폰 할인</h5>
+                                <p class="card-text text-muted">
+                                    다양한 쿠폰을 활용하여 더욱 저렴한 가격에 쇼핑을 즐기세요.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="card-title">안전한 결제</h5>
+                                <p class="card-text text-muted">
+                                    최신 보안 기술로 안전하게 보호되는 결제 시스템을 제공합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Products Section -->
+        <section class="bg-light py-5">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>인기 상품</h2>
+                    <a href="/shop" class="btn btn-outline-primary">
+                        전체보기 <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="row g-4" id="popularProducts">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">로딩중...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="py-5">
+            <div class="container">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="p-4">
+                            <i class="bi bi-people text-primary" style="font-size: 3rem;"></i>
+                            <h3 class="mt-3">1000+</h3>
+                            <p class="text-muted">회원 수</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-4">
+                            <i class="bi bi-box text-primary" style="font-size: 3rem;"></i>
+                            <h3 class="mt-3">500+</h3>
+                            <p class="text-muted">등록 상품</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-4">
+                            <i class="bi bi-truck text-primary" style="font-size: 3rem;"></i>
+                            <h3 class="mt-3">5000+</h3>
+                            <p class="text-muted">배송 완료</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-4">
+                            <i class="bi bi-star-fill text-primary" style="font-size: 3rem;"></i>
+                            <h3 class="mt-3">4.8</h3>
+                            <p class="text-muted">평균 평점</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        // 인기 상품 로드
+        async function loadPopularProducts() {
+            try {
+                const response = await fetch('/products?page=0&size=4');
+                const data = await response.json();
+
+                const container = document.getElementById('popularProducts');
+
+                // API 응답 형식에 따라 처리
+                const products = Array.isArray(data) ? data : (data.content || []);
+
+                if (products && products.length > 0) {
+                    container.innerHTML = products.slice(0, 4).map(product => `
+                        <div class="col-md-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">${product.title || '제목 없음'}</h5>
+                                    <p class="card-text text-muted">${product.description || '상품 설명이 없습니다.'}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="h5 mb-0 text-primary">${product.price ? product.price.toLocaleString() + '원' : '가격 정보 없음'}</span>
+                                        <a href="/shop/${product.id}" class="btn btn-sm btn-outline-primary">
+                                            상세보기
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="col-12 text-center text-muted">등록된 상품이 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('상품 로드 실패:', error);
+                document.getElementById('popularProducts').innerHTML =
+                    '<div class="col-12 text-center text-danger">상품을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPopularProducts);
+    </script>
+</body>
+</html>

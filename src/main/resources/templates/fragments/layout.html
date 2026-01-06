@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">DDD Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,.8) !important;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        main {
+            flex: 1;
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            margin-top: auto;
+        }
+
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,.2);
+        }
+
+        .badge-custom {
+            background-color: var(--accent-color);
+        }
+    </style>
+</head>
+
+<nav th:fragment="nav" class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-shop"></i> DDD Store
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/shop">
+                        <i class="bi bi-grid"></i> 상품
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart">
+                        <i class="bi bi-cart"></i> 장바구니
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/my-orders">
+                        <i class="bi bi-box-seam"></i> 주문내역
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item" id="loginNav">
+                    <a class="nav-link" href="/login">
+                        <i class="bi bi-box-arrow-in-right"></i> 로그인
+                    </a>
+                </li>
+                <li class="nav-item" id="signupNav">
+                    <a class="nav-link" href="/signup">
+                        <i class="bi bi-person-plus"></i> 회원가입
+                    </a>
+                </li>
+                <li class="nav-item d-none" id="logoutNav">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> 로그아웃
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer" class="py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="bi bi-shop"></i> DDD Store</h5>
+                <p class="text-muted">Domain-Driven Design 기반 이커머스 플랫폼</p>
+            </div>
+            <div class="col-md-3">
+                <h6>고객지원</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">FAQ</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">배송안내</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">환불정책</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6>회사정보</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">회사소개</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">이용약관</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">개인정보처리방침</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="bg-light">
+        <div class="text-center text-muted">
+            <small>&copy; 2024 DDD Store. All rights reserved.</small>
+        </div>
+    </div>
+</footer>
+
+<th:block th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // JWT 토큰 관리
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+
+        function setToken(token) {
+            localStorage.setItem('accessToken', token);
+            updateNavbar();
+        }
+
+        function removeToken() {
+            localStorage.removeItem('accessToken');
+            updateNavbar();
+        }
+
+        function logout() {
+            removeToken();
+            window.location.href = '/';
+        }
+
+        function updateNavbar() {
+            const token = getToken();
+            const loginNav = document.getElementById('loginNav');
+            const signupNav = document.getElementById('signupNav');
+            const logoutNav = document.getElementById('logoutNav');
+
+            if (token) {
+                loginNav.classList.add('d-none');
+                signupNav.classList.add('d-none');
+                logoutNav.classList.remove('d-none');
+            } else {
+                loginNav.classList.remove('d-none');
+                signupNav.classList.remove('d-none');
+                logoutNav.classList.add('d-none');
+            }
+        }
+
+        // API 호출 헬퍼
+        async function apiCall(url, options = {}) {
+            const token = getToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            if (response.status === 401) {
+                removeToken();
+                window.location.href = '/login';
+                return;
+            }
+
+            return response;
+        }
+
+        // 페이지 로드 시 네비게이션 업데이트
+        document.addEventListener('DOMContentLoaded', updateNavbar);
+    </script>
+</th:block>
+</html>
