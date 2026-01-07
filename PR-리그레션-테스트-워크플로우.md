@@ -34,17 +34,35 @@ Store 프로젝트의 PR에서 구현하거나 변경된 기능에 대해 Playwr
     └── regression-tests/                   (리그레션 테스트 루트)
     ├── {PR-이름-1}/                    (예: 회원가입-기능-추가)
     │   ├── PR-분석.md                  (PR 변경사항 분석 문서)
-    │   ├── playwright-tests/           (Playwright 테스트 코드)
-    │   │   ├── {기능명}.spec.ts
+    │   ├── 테스트-결과.md              (테스트 결과 문서)
+    │   ├── screenshots/                (테스트 결과 스크린샷 - 테스트-결과.md에서 참조)
+    │   │   ├── 1-login-page.png
+    │   │   ├── 2-cart-add.png
+    │   │   ├── 3-order-success.png
     │   │   └── ...
-    │   └── 테스트-결과.md              (테스트 결과 및 스크린샷)
+    │   └── playwright-tests/           (Playwright 테스트 코드)
+    │       ├── tests/                  (테스트 파일)
+    │       │   ├── {기능명}.spec.ts
+    │       │   └── ...
+    │       ├── playwright.config.ts    (Playwright 설정)
+    │       └── package.json
     ├── {PR-이름-2}/                    (예: 주문-할인-로직-수정)
     │   ├── PR-분석.md
-    │   ├── playwright-tests/
-    │   │   └── order-discount.spec.ts
-    │   └── 테스트-결과.md
+    │   ├── 테스트-결과.md
+    │   ├── screenshots/                (테스트 결과 스크린샷)
+    │   │   └── ...
+    │   └── playwright-tests/
+    │       ├── tests/
+    │       │   └── order-discount.spec.ts
+    │       ├── playwright.config.ts
+    │       └── package.json
     └── ...
 ```
+
+### 폴더 구조 설명
+- **screenshots/** 폴더는 PR 루트에 위치하여 `테스트-결과.md`에서 쉽게 참조 가능
+- 테스트 실행 후 스크린샷을 `playwright-tests/test-results/`에서 `../screenshots/`로 복사하여 정리
+- `테스트-결과.md`에서 `![설명](screenshots/파일명.png)` 형식으로 참조
 
 ### 폴더 명명 규칙
 - PR 폴더명: `{기능명}-{작업유형}` 형식 (예: `회원가입-기능-추가`, `주문-취소-버그수정`)
@@ -68,8 +86,9 @@ JWT_EXPIRES=86400000
 
 ### 2. Playwright 설치
 ```bash
-# Playwright 프로젝트 초기화 (regression-tests 루트에서)
-npm init playwright@latest
+# Playwright 프로젝트 초기화
+npm init -y
+npm install -D @playwright/test typescript @types/node
 
 # 브라우저 설치
 npx playwright install
@@ -78,10 +97,58 @@ npx playwright install
 npx playwright install-deps
 ```
 
+**playwright.config.ts 설정 파일 생성**:
+```typescript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  timeout: 60000,
+  expect: {
+    timeout: 10000
+  },
+  use: {
+    baseURL: 'http://localhost:8080',
+    trace: 'on-first-retry',
+    screenshot: 'on',  // 모든 테스트에서 스크린샷 캡처
+    video: 'retain-on-failure',  // 실패 시 비디오 저장
+    headless: false,  // UI 표시 (브라우저 화면 보기)
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});
+```
+
+**package.json scripts 설정**:
+```json
+{
+  "scripts": {
+    "test": "playwright test --headed",
+    "test:headless": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  }
+}
+```
+
 ### 3. 프론트엔드 환경
 - 프론트엔드 애플리케이션 URL 확인 (예: `http://localhost:3000`)
 - 테스트용 계정 준비
 
+
+### 4. 테스트 계정
+- id: test2345
+- password: Qwpo1209!@
 ---
 
 ## 워크플로우 단계
@@ -101,7 +168,10 @@ git checkout {pr-branch-name}
 cd ../regression-tests
 mkdir {PR-이름}
 cd {PR-이름}
+
+# Playwright 테스트 폴더와 스크린샷 폴더 생성
 mkdir playwright-tests
+mkdir screenshots  # 테스트 결과 스크린샷 저장용
 ```
 
 #### 1.3 PR 분석 문서 작성
@@ -146,23 +216,54 @@ cd ../regression-tests/{PR-이름}/playwright-tests
 
 ### 4단계: 테스트 실행
 
+**기본 실행 (브라우저 UI 보이면서 실행, 스크린샷 자동 캡처)**:
 ```bash
-# 모든 테스트 실행
-npx playwright test
+# package.json에 설정된 기본 명령어 (--headed 모드)
+npm test
 
-# 특정 테스트만 실행
-npx playwright test {기능명}.spec.ts
-
-# UI 모드로 실행 (디버깅용)
-npx playwright test --ui
-
-# 헤드풀 모드로 실행 (브라우저 표시)
+# 또는 직접 실행
 npx playwright test --headed
 ```
 
-### 5단계: 테스트 결과 문서화
+**기타 실행 옵션**:
+```bash
+# 특정 테스트만 실행
+npx playwright test tests/{기능명}.spec.ts --headed
 
+# UI 모드로 실행 (디버깅용, 인터랙티브)
+npx playwright test --ui
+
+# 헤드리스 모드로 실행 (브라우저 화면 안 보임, CI/CD용)
+npm run test:headless
+
+# HTML 리포트 생성 및 보기
+npx playwright test --reporter=html
+npx playwright show-report
+```
+
+**스크린샷 확인**:
+- 테스트 실행 중: `playwright-tests/test-results/` 디렉토리에 자동 저장
+- 파일명: `test-finished-1.png`, `test-finished-2.png` 등
+- 실패한 테스트: 추가로 `test-failed-*.png` 및 비디오 저장
+- **문서화용**: 주요 스크린샷을 선별하여 `screenshots/` 폴더로 복사 정리 (5단계 참조)
+
+### 5단계: 스크린샷 정리 및 테스트 결과 문서화
+
+#### 5.1 스크린샷 정리
+```bash
+# playwright-tests에서 테스트 실행 완료 후
+cd ..  # PR 루트 디렉토리로 이동
+
+# 주요 스크린샷을 screenshots 폴더로 복사
+cp playwright-tests/test-results/{테스트명}/test-finished-*.png screenshots/
+# 파일명을 의미있게 변경
+mv screenshots/test-finished-1.png screenshots/1-login-page.png
+mv screenshots/test-finished-2.png screenshots/2-cart-add.png
+```
+
+#### 5.2 테스트-결과.md 작성
 `테스트-결과.md` 파일을 생성하고 테스트 결과를 기록합니다.
+스크린샷은 `screenshots/` 폴더의 이미지를 참조합니다.
 (자세한 내용은 "테스트 실행 및 결과 문서화" 참고)
 
 ### 6단계: PR 리뷰 및 승인
@@ -248,7 +349,67 @@ test.describe('기능명 테스트', () => {
 
 ### Store 프로젝트 테스트 예시
 
-#### 1. 회원가입 테스트 예시
+#### 0. API 테스트 예시 (백엔드 직접 테스트)
+
+**장바구니 API 테스트 (Authentication 기반)**:
+```typescript
+import { test, expect } from '@playwright/test';
+
+let authToken: string;
+const baseURL = 'http://localhost:8080';
+
+test.describe('장바구니 API 테스트', () => {
+  // 모든 테스트 전에 로그인하여 JWT 토큰 획득
+  test.beforeAll(async ({ request }) => {
+    const loginResponse = await request.post(`${baseURL}/members/sign-in`, {
+      data: {
+        username: 'testuser',
+        password: 'Test1234'
+      }
+    });
+
+    expect(loginResponse.ok()).toBeTruthy();
+    const loginData = await loginResponse.json();
+    authToken = loginData.accessToken;
+  });
+
+  test('장바구니 조회 - Authentication 기반', async ({ request }) => {
+    // When: Authorization 헤더와 함께 장바구니 조회
+    const response = await request.get(`${baseURL}/carts`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    // Then: 성공 응답 확인
+    expect(response.ok()).toBeTruthy();
+    const cartData = await response.json();
+    console.log('Cart data:', cartData);
+  });
+
+  test('장바구니 추가 - Authentication 기반', async ({ request }) => {
+    const response = await request.post(`${baseURL}/carts`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        productId: 1,
+        quantity: 2
+      }
+    });
+
+    expect(response.ok()).toBeTruthy();
+  });
+
+  test('인증 없이 접근 시 401 오류', async ({ request }) => {
+    const response = await request.get(`${baseURL}/carts`);
+    expect(response.status()).toBeGreaterThanOrEqual(401);
+  });
+});
+```
+
+#### 1. 회원가입 테스트 예시 (UI 테스트)
 ```typescript
 import { test, expect } from '@playwright/test';
 
@@ -402,21 +563,83 @@ test.describe('쿠폰 할인 테스트', () => {
 
 ### 스크린샷 캡처 가이드
 
+**중요**: Playwright 테스트 실행 중에는 자동으로 `test-results/` 폴더에 스크린샷이 저장됩니다. 테스트 완료 후, 문서화를 위해 주요 스크린샷만 선별하여 `../screenshots/` 폴더로 복사 정리합니다.
+
+**1. 자동 스크린샷 (playwright.config.ts 설정 기반)**:
 ```typescript
-// 전체 페이지 스크린샷
-await page.screenshot({ path: 'screenshots/full-page.png' });
+// playwright.config.ts에 screenshot: 'on' 설정 시
+// 모든 테스트 단계마다 자동으로 스크린샷 캡처
+// playwright-tests/test-results/ 디렉토리에 자동 저장
 
-// 특정 요소만 캡처
-await page.locator('.specific-element').screenshot({
-  path: 'screenshots/element.png'
-});
+// 테스트 실행 후:
+// playwright-tests/test-results/{테스트명}/test-finished-1.png
+// playwright-tests/test-results/{테스트명}/test-finished-2.png
+// ...
+```
 
-// 전체 페이지 스크린샷 (스크롤 포함)
-await page.screenshot({
-  path: 'screenshots/full-page-scroll.png',
-  fullPage: true
+**2. 테스트 실행 중 스크린샷 (테스트 코드 내에서)**:
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('장바구니 테스트', () => {
+  test('장바구니 추가 및 조회', async ({ page }) => {
+    // 1단계: 로그인
+    await page.goto('http://localhost:3000/login');
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="password"]', 'Test1234');
+
+    // 스크린샷은 test-results에 자동 저장됨
+    // 또는 명시적으로 특정 단계 캡처 (선택사항)
+    await page.screenshot({
+      path: 'test-results/manual-login-page.png',
+      fullPage: true
+    });
+
+    await page.click('button[type="submit"]');
+
+    // 나머지 테스트 진행...
+    // screenshot: 'on' 설정으로 모든 단계가 자동 캡처됨
+  });
 });
 ```
+
+**3. 테스트 완료 후 스크린샷 정리 (문서화 준비)**:
+```bash
+# playwright-tests 디렉토리에서 실행 후
+cd ..  # PR 루트로 이동
+
+# 주요 스크린샷을 screenshots 폴더로 복사하여 정리
+cp playwright-tests/test-results/{테스트-1}/test-finished-1.png screenshots/1-login-page.png
+cp playwright-tests/test-results/{테스트-2}/test-finished-1.png screenshots/2-cart-add.png
+
+# 이제 테스트-결과.md에서 screenshots/ 폴더의 이미지를 참조
+```
+
+**스크린샷 옵션**:
+```typescript
+// 전체 페이지 스크린샷 (스크롤 포함)
+await page.screenshot({
+  path: 'screenshots/full-page.png',
+  fullPage: true
+});
+
+// 특정 요소만 캡처
+await page.locator('.cart-item').screenshot({
+  path: 'screenshots/cart-item.png'
+});
+
+// 화질 조정 (JPEG)
+await page.screenshot({
+  path: 'screenshots/page.jpg',
+  type: 'jpeg',
+  quality: 90
+});
+```
+
+**스크린샷 명명 규칙**:
+- `{순서번호}-{단계설명}.png` 형식 사용
+- 예: `1-login-page.png`, `2-cart-add.png`, `3-order-success.png`
+- 테스트별로 폴더 분리: `screenshots/cart-test/`, `screenshots/order-test/`
 
 ### 테스트 베스트 프랙티스
 
@@ -436,14 +659,61 @@ await page.screenshot({
 ```bash
 # regression-tests/{PR-이름}/playwright-tests 디렉토리에서
 
-# 모든 테스트 실행
-npx playwright test
+# 기본 실행 (브라우저 UI 보이면서, 스크린샷 자동 캡처)
+npm test
 
-# HTML 리포트 생성
+# 또는
+npx playwright test --headed
+
+# HTML 리포트 생성 및 보기
 npx playwright test --reporter=html
-
-# 리포트 보기
 npx playwright show-report
+```
+
+### 스크린샷 정리 및 문서화 준비
+
+테스트 실행 후, 스크린샷을 테스트-결과.md에서 참조할 수 있도록 정리합니다.
+
+```bash
+# 1. 현재 위치: regression-tests/{PR-이름}/playwright-tests
+
+# 2. 테스트 실행 후 생성된 스크린샷 확인
+ls -la test-results/
+
+# 3. PR 루트에 screenshots 폴더 생성
+cd ..
+mkdir -p screenshots
+
+# 4. 필요한 스크린샷을 screenshots 폴더로 복사 및 이름 정리
+# test-results에서 의미있는 스크린샷만 선별하여 복사
+cp playwright-tests/test-results/{테스트명}/test-finished-1.png screenshots/1-login-page.png
+cp playwright-tests/test-results/{테스트명}/test-finished-2.png screenshots/2-cart-add.png
+cp playwright-tests/test-results/{테스트명}/test-finished-3.png screenshots/3-order-success.png
+
+# 5. 복사된 스크린샷 확인
+ls -la screenshots/
+```
+
+**스크린샷 정리 가이드**:
+- 순서대로 번호를 매겨 정리: `1-`, `2-`, `3-` ...
+- 명확한 설명 포함: `1-login-page.png`, `2-cart-add-success.png`
+- 테스트-결과.md에서 참조할 주요 스크린샷만 선별
+- 원본은 `playwright-tests/test-results/`에 보관, 정리본은 `screenshots/`에 저장
+
+**자동화 스크립트 예시**:
+```bash
+# organize-screenshots.sh 생성
+#!/bin/bash
+cd ../screenshots
+rm -rf *  # 기존 스크린샷 정리
+
+# 주요 스크린샷만 복사 (테스트 케이스별로)
+cp ../playwright-tests/test-results/*로그인*/test-finished-*.png ./1-login-page.png
+cp ../playwright-tests/test-results/*장바구니*/test-finished-*.png ./2-cart-add.png
+cp ../playwright-tests/test-results/*주문*/test-finished-*.png ./3-order-success.png
+
+echo "스크린샷 정리 완료!"
+ls -la
 ```
 
 ### 테스트-결과.md 템플릿
@@ -733,11 +1003,72 @@ test('느린 테스트', async ({ page }) => {
 # screenshots 디렉토리 생성
 mkdir -p screenshots
 
-# 또는 코드에서 자동 생성
+# playwright.config.ts에서 자동 생성되는 경로 확인
+# screenshot: 'on' 설정 시 test-results/ 디렉토리에 자동 저장
+```
+
+**수동 스크린샷 저장 시**:
+```typescript
+// 상대 경로 사용
+await page.screenshot({ path: 'screenshots/test.png' });
+
+// 절대 경로 사용
+import path from 'path';
 await page.screenshot({
-  path: 'screenshots/example.png',
-  // 디렉토리가 없으면 자동 생성하도록 설정 필요
+  path: path.join(__dirname, '../screenshots/test.png')
 });
+```
+
+### 4-1. 브라우저 UI가 안 보이는 문제
+
+**증상**: 테스트가 실행되지만 브라우저 화면이 보이지 않음
+
+**해결방법**:
+```typescript
+// playwright.config.ts에서 확인
+export default defineConfig({
+  use: {
+    headless: false,  // 반드시 false로 설정
+  },
+});
+```
+
+**또는 명령어에서 지정**:
+```bash
+# --headed 옵션 사용
+npx playwright test --headed
+
+# package.json에 설정
+{
+  "scripts": {
+    "test": "playwright test --headed"
+  }
+}
+```
+
+### 4-2. 브라우저가 너무 빨리 닫히는 문제
+
+**증상**: 브라우저가 열렸다가 바로 닫혀서 확인하기 어려움
+
+**해결방법**:
+```typescript
+// 특정 테스트에서 대기 시간 추가
+test('테스트', async ({ page }) => {
+  // 테스트 로직
+  await page.screenshot({ path: 'screenshots/final.png' });
+
+  // 브라우저 유지 (5초)
+  await page.waitForTimeout(5000);
+});
+```
+
+**또는 디버그 모드 사용**:
+```bash
+# UI 모드로 실행 (단계별 실행 가능)
+npx playwright test --ui
+
+# 디버그 모드
+npx playwright test --debug
 ```
 
 ### 5. 인증 토큰 만료
@@ -820,6 +1151,9 @@ test.afterEach(async ({ request }) => {
 - [Playwright 공식 문서](https://playwright.dev/)
 - [Best Practices](https://playwright.dev/docs/best-practices)
 - [Screenshots](https://playwright.dev/docs/screenshots)
+- [API Testing](https://playwright.dev/docs/api-testing)
+- [Test Configuration](https://playwright.dev/docs/test-configuration)
+- [Debugging Tests](https://playwright.dev/docs/debug)
 
 ### Store 프로젝트 관련
 - `store/CLAUDE.md` - 프로젝트 아키텍처 및 개발 가이드
@@ -828,9 +1162,22 @@ test.afterEach(async ({ request }) => {
 ### 관련 도구
 - [GitHub Actions for Playwright](https://playwright.dev/docs/ci-intro)
 - [Playwright VS Code Extension](https://playwright.dev/docs/getting-started-vscode)
+- [Playwright Test Runner](https://playwright.dev/docs/running-tests)
 
 ---
 
 ## 문서 버전 관리
 
-- **v1.0** (2025-01-07): 초기 문서 작성
+- **v1.0** (2026-01-07): 초기 문서 작성
+- **v1.1** (2026-01-07):
+  - 브라우저 UI 표시 (headless: false) 설정 추가
+  - 스크린샷 자동 캡처 (screenshot: 'on') 설정 추가
+  - API 테스트 예시 추가
+  - 스크린샷 명명 규칙 및 저장 가이드 추가
+  - 트러블슈팅: 브라우저 UI 관련 문제 해결 방법 추가
+- **v1.2** (2026-01-07):
+  - 폴더 구조 변경: screenshots 폴더를 PR 루트로 이동
+  - 테스트-결과.md와 스크린샷을 함께 관리하도록 구조 개선
+  - 스크린샷 정리 프로세스 추가 (test-results → screenshots)
+  - 워크플로우 5단계에 스크린샷 정리 과정 추가
+  - 스크린샷 자동화 스크립트 예시 추가
