@@ -99,11 +99,46 @@ test('API: [Endpoint] - [Scenario]', async ({ request }) => {
    - Coupon discount calculation
    - Coupon redemption state
 
+## Output Location
+
+**중요**: 생성된 테스트 파일은 반드시 다음 위치에 저장해야 합니다.
+
+### 디렉토리 구조
+```
+regression-tests/playwright-tests/tests/
+├── {feature}/
+│   ├── {feature}-api.spec.ts    # API 테스트
+│   └── {feature}-ui.spec.ts     # UI E2E 테스트
+```
+
+### 저장 경로 규칙
+| 테스트 유형 | 저장 경로 | 예시 |
+|------------|----------|------|
+| API 테스트 | `regression-tests/playwright-tests/tests/{feature}/{feature}-api.spec.ts` | `tests/cart/cart-api.spec.ts` |
+| UI 테스트 | `regression-tests/playwright-tests/tests/{feature}/{feature}-ui.spec.ts` | `tests/cart/cart-ui.spec.ts` |
+| 통합 테스트 | `regression-tests/playwright-tests/tests/{feature}/{feature}-integration.spec.ts` | `tests/order/order-integration.spec.ts` |
+
+### Feature 폴더 예시
+- `tests/cart/` - 장바구니 관련 테스트
+- `tests/order/` - 주문 관련 테스트
+- `tests/member/` - 회원 관련 테스트
+- `tests/coupon/` - 쿠폰 관련 테스트
+- `tests/product/` - 상품 관련 테스트
+- `tests/auth/` - 인증 관련 테스트
+
+### 기존 테스트 확인
+새 테스트 생성 전 반드시 기존 테스트 확인:
+```bash
+ls regression-tests/playwright-tests/tests/
+```
+
+기존 테스트가 있으면 **새 파일 생성 대신 기존 파일에 테스트 케이스 추가**를 고려할 것.
+
 ## Output Format
 
 Generate Playwright test files with:
 
-1. **File naming**: `[feature].regression.spec.ts`
+1. **File naming**: `{feature}-{type}.spec.ts` (예: `cart-api.spec.ts`, `order-ui.spec.ts`)
 2. **Clear test descriptions** in Korean or English matching project conventions
 3. **Comprehensive assertions** covering:
    - Response status codes
