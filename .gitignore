@@ -38,5 +38,9 @@ out/
 
 ### docker ###
 /docker/mysql/
-/docker/jenkins\n# macOS specific files\n.DS_Store
-\n# Jenkins cache\ndocker/jenkins/
+
+### Jenkins (contains secrets) ###
+docker/jenkins/
+
+### macOS ###
+.DS_Store
