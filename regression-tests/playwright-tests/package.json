@@ -1,0 +1,25 @@
+{
+  "name": "store-e2e-tests",
+  "version": "1.0.0",
+  "description": "Store E2E Integration Test Suite",
+  "scripts": {
+    "test": "playwright test --headed",
+    "test:headless": "playwright test",
+    "test:ci": "playwright test --reporter=html,json",
+    "test:cart": "playwright test tests/cart/",
+    "test:order": "playwright test tests/order/",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report ../coverage-reports/latest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  }
+}

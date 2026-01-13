@@ -1,0 +1,639 @@
+{
+  "config": {
+    "configFile": "/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store/regression-tests/playwright-tests/playwright.config.ts",
+    "rootDir": "/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store/regression-tests/playwright-tests/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "../coverage-reports/latest"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../coverage-reports/latest/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store/regression-tests/playwright-tests/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store/regression-tests/playwright-tests/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "cart/cart-api.spec.ts",
+      "file": "cart/cart-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "@pr-1 장바구니 API 테스트 (Authentication 기반)",
+          "file": "cart/cart-api.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "@regression 장바구니 조회 - Authentication 기반",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 198,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "로그인 성공, JWT 토큰 획득\n"
+                        },
+                        {
+                          "text": "Cart data: [\n  {\n    id: \u001b[33m5\u001b[39m,\n    productId: \u001b[33m1\u001b[39m,\n    productName: \u001b[32m'Classic Baseball Cap'\u001b[39m,\n    price: { amount: \u001b[33m6\u001b[39m },\n    imageUrl: \u001b[32m'https://i.imgur.com/KeqG6r4.jpeg'\u001b[39m,\n    quantity: \u001b[33m2\u001b[39m\n  }\n]\n"
+                        },
+                        {
+                          "text": "CartDto에 productId 포함 확인\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:29.421Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-09207b335d4d76e32741",
+              "file": "cart/cart-api.spec.ts",
+              "line": 14,
+              "column": 7
+            },
+            {
+              "title": "@regression 장바구니 추가 - Authentication 기반",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 253,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "장바구니 추가 결과: { cartId: \u001b[33m5\u001b[39m, message: \u001b[32m'장바구니에 정상적으로 추가되었습니다.'\u001b[39m }\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.217Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-9508374d57505f090d57",
+              "file": "cart/cart-api.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "@regression 장바구니 조회 후 productId 포함 확인",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 223,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "로그인 성공, JWT 토큰 획득\n"
+                        },
+                        {
+                          "text": "CartDto 구조 확인 완료: {\n  id: \u001b[33m5\u001b[39m,\n  productId: \u001b[33m1\u001b[39m,\n  productName: \u001b[32m'Classic Baseball Cap'\u001b[39m,\n  price: { amount: \u001b[33m6\u001b[39m },\n  imageUrl: \u001b[32m'https://i.imgur.com/KeqG6r4.jpeg'\u001b[39m,\n  quantity: \u001b[33m2\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:29.391Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-e779ae96b22f156de271",
+              "file": "cart/cart-api.spec.ts",
+              "line": 58,
+              "column": 7
+            },
+            {
+              "title": "@regression 장바구니 전체 삭제 - Authentication 기반",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 267,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "장바구니 전체 삭제 성공 (202 ACCEPTED)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.213Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-8bb7fafb26c42cb45089",
+              "file": "cart/cart-api.spec.ts",
+              "line": 77,
+              "column": 7
+            },
+            {
+              "title": "@smoke @regression 인증 없이 장바구니 조회 시 401/403 Unauthorized",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "smoke",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 83,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "로그인 성공, JWT 토큰 획득\n"
+                        },
+                        {
+                          "text": "인증 없이 접근 시 401/403 반환 확인\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:29.496Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-ee526f6089ace72bd564",
+              "file": "cart/cart-api.spec.ts",
+              "line": 88,
+              "column": 7
+            },
+            {
+              "title": "@regression 인증 없이 장바구니 추가 시 401/403 Unauthorized",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 128,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "인증 없이 추가 시 401/403 반환 확인\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.164Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-cb3e2a94714d293e28f9",
+              "file": "cart/cart-api.spec.ts",
+              "line": 97,
+              "column": 7
+            },
+            {
+              "title": "@regression 인증 없이 장바구니 전체 삭제 시 401/403 Unauthorized",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 67,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "로그인 성공, JWT 토큰 획득\n"
+                        },
+                        {
+                          "text": "인증 없이 삭제 시 401/403 반환 확인\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:29.466Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c70543e1809ad91e8421-bc9bcc1c1e7a886b6792",
+              "file": "cart/cart-api.spec.ts",
+              "line": 114,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "cart/cart-ui.spec.ts",
+      "file": "cart/cart-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "@pr-1 장바구니 UI 테스트",
+          "file": "cart/cart-ui.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "@regression 장바구니 전체 플로우 - 로그인부터 장바구니 확인까지",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 6739,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "1. 로그인 페이지 스크린샷 저장\n"
+                        },
+                        {
+                          "text": "2. 로그인 폼 입력 스크린샷 저장\n"
+                        },
+                        {
+                          "text": "로그인 후 URL: http://localhost:8080/login\n"
+                        },
+                        {
+                          "text": "3. 로그인 성공 후 페이지 스크린샷 저장\n"
+                        },
+                        {
+                          "text": "4. 장바구니 페이지 스크린샷 저장\n"
+                        },
+                        {
+                          "text": "페이지 제목: 로그인 - DDD Store\n"
+                        },
+                        {
+                          "text": "장바구니 페이지 요소 확인 완료\n"
+                        },
+                        {
+                          "text": "5. 상품 목록 페이지 스크린샷 저장\n"
+                        },
+                        {
+                          "text": "장바구니 관련 주요 페이지 스크린샷 캡처 완료\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.081Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store/regression-tests/playwright-tests/test-results/cart-cart-ui--pr-1-장바구니-UI-67cea-구니-전체-플로우---로그인부터-장바구니-확인까지-chromium/test-finished-1.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "69ab6791f224cda0605d-9b8142ce463e0980ce4b",
+              "file": "cart/cart-ui.spec.ts",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "title": "@smoke @regression 로그아웃 상태에서 장바구니 접근 테스트",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "smoke",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1850,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "로그아웃 상태에서 장바구니 접근 시 URL: http://localhost:8080/login\n"
+                        },
+                        {
+                          "text": "로그아웃 상태에서 장바구니 접근 차단 확인\n"
+                        },
+                        {
+                          "text": "장바구니 접근 거부 스크린샷 저장\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.454Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store/regression-tests/playwright-tests/test-results/cart-cart-ui--pr-1-장바구니-UI-c8f70-ssion-로그아웃-상태에서-장바구니-접근-테스트-chromium/test-finished-1.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "69ab6791f224cda0605d-214929480b69ac69d3aa",
+              "file": "cart/cart-ui.spec.ts",
+              "line": 82,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "order/order-api.spec.ts",
+      "file": "order/order-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "@pr-1 주문 API 테스트 (Authentication 기반)",
+          "file": "order/order-api.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "@regression 내 주문 조회 - Authentication 기반",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 122,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "내 주문 목록: [\n  {\n    orderId: \u001b[33m1\u001b[39m,\n    orderState: \u001b[32m'PREPARING'\u001b[39m,\n    shippingInfo: { address: \u001b[36m[Object]\u001b[39m, receiver: \u001b[36m[Object]\u001b[39m },\n    message: \u001b[32m''\u001b[39m,\n    totalAmounts: { amount: \u001b[33m102\u001b[39m },\n    orderer: \u001b[32m'test_name'\u001b[39m,\n    createdAt: \u001b[33m1767616789.162775\u001b[39m,\n    paymentInfo: \u001b[32m'CARD'\u001b[39m,\n    orderLines: [ \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m ]\n  },\n  {\n    orderId: \u001b[33m2\u001b[39m,\n    orderState: \u001b[32m'PREPARING'\u001b[39m,\n    shippingInfo: { address: \u001b[36m[Object]\u001b[39m, receiver: \u001b[36m[Object]\u001b[39m },\n    message: \u001b[32m''\u001b[39m,\n    totalAmounts: { amount: \u001b[33m16\u001b[39m },\n    orderer: \u001b[32m'test_name'\u001b[39m,\n    createdAt: \u001b[33m1767618235.879429\u001b[39m,\n    paymentInfo: \u001b[32m'CARD'\u001b[39m,\n    orderLines: [ \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m ]\n  },\n  {\n    orderId: \u001b[33m3\u001b[39m,\n    orderState: \u001b[32m'PREPARING'\u001b[39m,\n    shippingInfo: { address: \u001b[36m[Object]\u001b[39m, receiver: \u001b[36m[Object]\u001b[39m },\n    message: \u001b[32m''\u001b[39m,\n    totalAmounts: { amount: \u001b[33m265\u001b[39m },\n    orderer: \u001b[32m'test_name'\u001b[39m,\n    createdAt: \u001b[33m1767702114.838512\u001b[39m,\n    paymentInfo: \u001b[32m'CARD'\u001b[39m,\n    orderLines: [ \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m, \u001b[36m[Object]\u001b[39m ]\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.515Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1bb88479637ea09de5f2-eaada5f503ce1c0d3865",
+              "file": "order/order-api.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "@smoke @regression 인증 없이 내 주문 조회 시 401/403 Unauthorized",
+              "ok": true,
+              "tags": [
+                "pr-1",
+                "smoke",
+                "regression"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 43,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "인증 없이 주문 조회 시 401/403 반환 확인\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-11T08:51:32.515Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1bb88479637ea09de5f2-4f254703541fb585d891",
+              "file": "order/order-api.spec.ts",
+              "line": 24,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-11T08:51:28.460Z",
+    "duration": 12385.392,
+    "expected": 11,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

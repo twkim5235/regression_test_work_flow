@@ -1,0 +1,122 @@
+import { test, expect } from '@playwright/test';
+import { API_BASE_URL, TEST_USER } from '../common/fixtures';
+import { authHeader, login } from '../common/helpers';
+
+let authToken: string;
+
+test.describe('@pr-1 장바구니 API 테스트 (Authentication 기반)', () => {
+  // 모든 테스트 전에 로그인하여 JWT 토큰 획득
+  test.beforeAll(async ({ request }) => {
+    authToken = await login(request);
+    console.log('로그인 성공, JWT 토큰 획득');
+  });
+
+  test('@regression 장바구니 조회 - Authentication 기반', async ({ request }) => {
+    // When: Authorization 헤더와 함께 장바구니 조회 (memberId 파라미터 없음)
+    const response = await request.get(`${API_BASE_URL}/carts`, {
+      headers: authHeader(authToken)
+    });
+
+    // Then: 성공 응답 확인
+    expect(response.ok()).toBeTruthy();
+    const cartData = await response.json();
+    console.log('Cart data:', cartData);
+
+    // CartDto에 productId 포함 여부 확인
+    if (cartData.length > 0) {
+      expect(cartData[0]).toHaveProperty('productId');
+      console.log('CartDto에 productId 포함 확인');
+    }
+  });
+
+  test('@regression 장바구니 추가 - Authentication 기반', async ({ request }) => {
+    // Given: 추가할 상품 정보 (memberId는 null - Authentication에서 추출)
+    const addCartRequest = {
+      memberId: null,
+      productId: 1,
+      quantity: 2
+    };
+
+    // When: Authorization 헤더와 함께 장바구니 추가
+    const response = await request.post(`${API_BASE_URL}/carts`, {
+      headers: authHeader(authToken),
+      data: addCartRequest
+    });
+
+    // Then: 성공 응답 확인
+    if (!response.ok()) {
+      console.log('장바구니 추가 실패 - 상태:', response.status());
+      console.log('응답 내용:', await response.text());
+    }
+    expect(response.ok()).toBeTruthy();
+    const responseData = await response.json();
+    console.log('장바구니 추가 결과:', responseData);
+    expect(responseData).toHaveProperty('cartId');
+    expect(responseData.message).toBe('장바구니에 정상적으로 추가되었습니다.');
+  });
+
+  test('@regression 장바구니 조회 후 productId 포함 확인', async ({ request }) => {
+    // When: 장바구니 조회
+    const response = await request.get(`${API_BASE_URL}/carts`, {
+      headers: authHeader(authToken)
+    });
+
+    // Then: CartDto에 productId 필드 확인
+    expect(response.ok()).toBeTruthy();
+    const cartData = await response.json();
+
+    if (cartData.length > 0) {
+      expect(cartData[0]).toHaveProperty('productId');
+      expect(cartData[0]).toHaveProperty('productName');
+      expect(cartData[0]).toHaveProperty('price');
+      expect(cartData[0]).toHaveProperty('quantity');
+      console.log('CartDto 구조 확인 완료:', cartData[0]);
+    }
+  });
+
+  test('@regression 장바구니 전체 삭제 - Authentication 기반', async ({ request }) => {
+    // When: Authorization 헤더와 함께 장바구니 전체 삭제 (memberId 파라미터 없음)
+    const response = await request.delete(`${API_BASE_URL}/carts-all`, {
+      headers: authHeader(authToken)
+    });
+
+    // Then: 성공 응답 확인
+    expect(response.status()).toBe(202); // ACCEPTED
+    console.log('장바구니 전체 삭제 성공 (202 ACCEPTED)');
+  });
+
+  test('@smoke @regression 인증 없이 장바구니 조회 시 401/403 Unauthorized', async ({ request }) => {
+    // When: Authorization 헤더 없이 장바구니 조회
+    const response = await request.get(`${API_BASE_URL}/carts`);
+
+    // Then: 401 또는 403 응답 확인 (Spring Security는 403을 반환할 수 있음)
+    expect([401, 403]).toContain(response.status());
+    console.log('인증 없이 접근 시 401/403 반환 확인');
+  });
+
+  test('@regression 인증 없이 장바구니 추가 시 401/403 Unauthorized', async ({ request }) => {
+    // When: Authorization 헤더 없이 장바구니 추가
+    const response = await request.post(`${API_BASE_URL}/carts`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        productId: 1,
+        quantity: 1
+      }
+    });
+
+    // Then: 401 또는 403 응답 확인
+    expect([401, 403]).toContain(response.status());
+    console.log('인증 없이 추가 시 401/403 반환 확인');
+  });
+
+  test('@regression 인증 없이 장바구니 전체 삭제 시 401/403 Unauthorized', async ({ request }) => {
+    // When: Authorization 헤더 없이 장바구니 전체 삭제
+    const response = await request.delete(`${API_BASE_URL}/carts-all`);
+
+    // Then: 401 또는 403 응답 확인
+    expect([401, 403]).toContain(response.status());
+    console.log('인증 없이 삭제 시 401/403 반환 확인');
+  });
+});

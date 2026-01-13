@@ -6,17 +6,21 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['html', { outputFolder: '../coverage-reports/latest' }],
+    ['json', { outputFile: '../coverage-reports/latest/results.json' }],
+    ['list']
+  ],
   timeout: 60000,
   expect: {
     timeout: 10000
   },
   use: {
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.API_URL || 'http://localhost:8080',
     trace: 'on-first-retry',
-    screenshot: 'on',  // 모든 테스트에서 스크린샷 캡처
-    video: 'retain-on-failure',  // 실패 시 비디오 저장
-    headless: false,  // UI 표시 (브라우저 화면 보기)
+    screenshot: 'on',
+    video: 'retain-on-failure',
+    headless: process.env.CI ? true : false,
   },
 
   projects: [

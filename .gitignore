@@ -38,4 +38,9 @@ out/
 
 ### docker ###
 /docker/mysql/
-/docker/jenkins
+
+### Jenkins (contains secrets) ###
+docker/jenkins/
+
+### macOS ###
+.DS_Store

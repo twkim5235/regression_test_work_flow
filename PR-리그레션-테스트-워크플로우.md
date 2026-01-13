@@ -8,8 +8,9 @@
 5. [문서 작성 가이드](#문서-작성-가이드)
 6. [Playwright 테스트 작성 가이드](#playwright-테스트-작성-가이드)
 7. [테스트 실행 및 결과 문서화](#테스트-실행-및-결과-문서화)
-8. [PR 승인 전 체크리스트](#pr-승인-전-체크리스트)
-9. [트러블슈팅](#트러블슈팅)
+8. [PR 코멘트 자동화](#pr-코멘트-자동화)
+9. [PR 승인 전 체크리스트](#pr-승인-전-체크리스트)
+10. [트러블슈팅](#트러블슈팅)
 
 ---
 
@@ -24,45 +25,69 @@ Store 프로젝트의 PR에서 구현하거나 변경된 기능에 대해 Playwr
 - 기존 기능 수정 시 영향도 검증
 - 테스트 결과의 시각적 문서화 (스크린샷 포함)
 
+### 통합 테스트 스위트와의 관계
+
+| 구분 | PR 리그레션 테스트 (이 문서) | 통합 테스트 스위트 |
+|------|---------------------------|-------------------|
+| **목적** | PR 변경사항 검증 | 전체 기능 리그레션 |
+| **실행 시점** | PR 올라올 때마다 | 언제든지 (배포 전, 정기적으로) |
+| **PR 필요** | O (PR 분석, 코멘트) | X (독립 실행) |
+| **테스트 범위** | PR 관련 기능만 | 전체 기능 |
+| **참고 문서** | 이 문서 | [통합-테스트-스위트-가이드.md](./통합-테스트-스위트-가이드.md) |
+
+**워크플로우**:
+```
+PR 테스트 작성 → 검증 완료 → PR 코멘트 → 통합 스위트에 병합 → 커버리지 누적
+```
+
 ---
 
 ## 폴더 구조
 
 ```
-├── store/                              (백엔드 프로젝트)
-    └──PR-리그레션-테스트-워크플로우.md  (이 문서)
-    └── regression-tests/                   (리그레션 테스트 루트)
-    ├── {PR-이름-1}/                    (예: 회원가입-기능-추가)
-    │   ├── PR-분석.md                  (PR 변경사항 분석 문서)
-    │   ├── 테스트-결과.md              (테스트 결과 문서)
-    │   ├── screenshots/                (테스트 결과 스크린샷 - 테스트-결과.md에서 참조)
-    │   │   ├── 1-login-page.png
-    │   │   ├── 2-cart-add.png
-    │   │   ├── 3-order-success.png
-    │   │   └── ...
-    │   └── playwright-tests/           (Playwright 테스트 코드)
-    │       ├── tests/                  (테스트 파일)
-    │       │   ├── {기능명}.spec.ts
-    │       │   └── ...
-    │       ├── playwright.config.ts    (Playwright 설정)
-    │       └── package.json
-    ├── {PR-이름-2}/                    (예: 주문-할인-로직-수정)
-    │   ├── PR-분석.md
-    │   ├── 테스트-결과.md
-    │   ├── screenshots/                (테스트 결과 스크린샷)
-    │   │   └── ...
-    │   └── playwright-tests/
-    │       ├── tests/
-    │       │   └── order-discount.spec.ts
-    │       ├── playwright.config.ts
-    │       └── package.json
-    └── ...
+store/
+├── PR-리그레션-테스트-워크플로우.md     (이 문서)
+├── 통합-테스트-스위트-가이드.md         (통합 테스트 가이드)
+│
+└── regression-tests/                    (리그레션 테스트 루트)
+    │
+    ├── playwright-tests/                (통합 테스트 스위트 - 누적)
+    │   ├── tests/                       (기능별 테스트 파일)
+    │   │   ├── auth/                    (인증 테스트)
+    │   │   ├── cart/                    (장바구니 테스트)
+    │   │   ├── order/                   (주문 테스트)
+    │   │   └── common/                  (공통 유틸리티)
+    │   ├── playwright.config.ts
+    │   └── package.json
+    │
+    ├── pr-results/                      (PR별 테스트 결과 보관)
+    │   ├── {PR-이름-1}/                 (예: 장바구니-리팩토링)
+    │   │   ├── PR-분석.md               (PR 변경사항 분석 문서)
+    │   │   ├── 테스트-결과.md           (테스트 결과 문서)
+    │   │   ├── pr-comment.md            (PR 코멘트용 문서)
+    │   │   └── screenshots/             (테스트 결과 스크린샷)
+    │   │       ├── 1-login-page.png
+    │   │       ├── 2-cart-add.png
+    │   │       └── ...
+    │   └── {PR-이름-2}/                 (예: 주문-할인-로직-수정)
+    │       └── ...
+    │
+    └── coverage-reports/                (커버리지 리포트)
+        ├── latest/
+        └── 2026-01-09/
 ```
 
 ### 폴더 구조 설명
-- **screenshots/** 폴더는 PR 루트에 위치하여 `테스트-결과.md`에서 쉽게 참조 가능
-- 테스트 실행 후 스크린샷을 `playwright-tests/test-results/`에서 `../screenshots/`로 복사하여 정리
-- `테스트-결과.md`에서 `![설명](screenshots/파일명.png)` 형식으로 참조
+| 폴더 | 설명 |
+|------|------|
+| `playwright-tests/` | 모든 테스트가 누적되는 통합 스위트 (PR 테스트 완료 후 병합) |
+| `pr-results/{PR-이름}/` | PR별 테스트 결과 문서 및 스크린샷 보관 |
+| `coverage-reports/` | 전체 테스트 실행 결과 리포트 |
+
+### 핵심 개념
+- **테스트 코드**: `playwright-tests/`에 통합 관리 (누적)
+- **테스트 결과**: `pr-results/{PR-이름}/`에 PR별로 보관
+- PR 테스트 완료 후, 재사용 가능한 테스트는 통합 스위트에 병합
 
 ### 폴더 명명 규칙
 - PR 폴더명: `{기능명}-{작업유형}` 형식 (예: `회원가입-기능-추가`, `주문-취소-버그수정`)
@@ -163,16 +188,18 @@ git fetch origin
 git checkout {pr-branch-name}
 ```
 
-#### 1.2 PR 폴더 생성
+#### 1.2 PR 결과 폴더 생성
 ```bash
-cd ../regression-tests
+cd regression-tests/pr-results
 mkdir {PR-이름}
 cd {PR-이름}
 
-# Playwright 테스트 폴더와 스크린샷 폴더 생성
-mkdir playwright-tests
-mkdir screenshots  # 테스트 결과 스크린샷 저장용
+# 스크린샷 폴더 생성
+mkdir screenshots
 ```
+
+> **참고**: 테스트 코드는 `regression-tests/playwright-tests/`의 통합 스위트에 작성합니다.
+> PR별 폴더에는 결과 문서와 스크린샷만 보관합니다.
 
 #### 1.3 PR 분석 문서 작성
 `PR-분석.md` 파일을 생성하고 다음 내용을 작성합니다:
@@ -205,70 +232,145 @@ curl http://localhost:8080/actuator/health
 
 ### 3단계: Playwright 테스트 작성
 
-#### 3.1 테스트 파일 생성
+#### 3.1 통합 테스트 스위트에서 작업
 ```bash
-cd ../regression-tests/{PR-이름}/playwright-tests
+cd regression-tests/playwright-tests
 ```
 
 #### 3.2 테스트 코드 작성
-변경된 기능에 대한 E2E 테스트 시나리오를 작성합니다.
-(자세한 내용은 "Playwright 테스트 작성 가이드" 참고)
+변경된 기능에 대한 E2E 테스트 시나리오를 통합 스위트에 작성합니다.
+
+- **새 기능**: `tests/{기능}/` 폴더에 새 테스트 파일 생성
+- **기존 기능 수정**: 기존 테스트 파일에 테스트 케이스 추가
+- **PR 태그**: `@pr-{PR번호}` 태그를 추가하여 PR 관련 테스트 식별
+
+```typescript
+// 예: tests/cart/cart-api.spec.ts
+test('@pr-123 @regression 장바구니 동일 상품 수량 증가', async ({ request }) => {
+  // 테스트 코드
+});
+```
+
+(자세한 내용은 "Playwright 테스트 작성 가이드" 및 [통합-테스트-스위트-가이드.md](./통합-테스트-스위트-가이드.md) 참고)
 
 ### 4단계: 테스트 실행
 
-**기본 실행 (브라우저 UI 보이면서 실행, 스크린샷 자동 캡처)**:
 ```bash
-# package.json에 설정된 기본 명령어 (--headed 모드)
-npm test
-
-# 또는 직접 실행
-npx playwright test --headed
+cd regression-tests/playwright-tests
 ```
 
-**기타 실행 옵션**:
+**PR 관련 테스트만 실행**:
 ```bash
-# 특정 테스트만 실행
-npx playwright test tests/{기능명}.spec.ts --headed
+# PR 태그로 필터링하여 실행
+npx playwright test --grep @pr-123 --headed
+
+# 또는 특정 기능 테스트 실행
+npx playwright test tests/cart/ --headed
+```
+
+**전체 테스트 실행**:
+```bash
+# 모든 테스트 실행 (브라우저 UI 표시)
+npm test
+
+# 헤드리스 모드로 실행 (CI/CD용)
+npm run test:headless
 
 # UI 모드로 실행 (디버깅용, 인터랙티브)
 npx playwright test --ui
 
-# 헤드리스 모드로 실행 (브라우저 화면 안 보임, CI/CD용)
-npm run test:headless
-
 # HTML 리포트 생성 및 보기
 npx playwright test --reporter=html
-npx playwright show-report
+npm run report
 ```
 
 **스크린샷 확인**:
 - 테스트 실행 중: `playwright-tests/test-results/` 디렉토리에 자동 저장
 - 파일명: `test-finished-1.png`, `test-finished-2.png` 등
 - 실패한 테스트: 추가로 `test-failed-*.png` 및 비디오 저장
-- **문서화용**: 주요 스크린샷을 선별하여 `screenshots/` 폴더로 복사 정리 (5단계 참조)
+- **문서화용**: 주요 스크린샷을 선별하여 `pr-results/{PR-이름}/screenshots/`로 복사 정리 (5단계 참조)
 
 ### 5단계: 스크린샷 정리 및 테스트 결과 문서화
 
 #### 5.1 스크린샷 정리
 ```bash
-# playwright-tests에서 테스트 실행 완료 후
-cd ..  # PR 루트 디렉토리로 이동
+# 통합 스위트에서 PR 결과 폴더로 스크린샷 복사
+cd regression-tests
 
-# 주요 스크린샷을 screenshots 폴더로 복사
-cp playwright-tests/test-results/{테스트명}/test-finished-*.png screenshots/
+# 주요 스크린샷을 PR 결과 폴더로 복사
+cp playwright-tests/test-results/{테스트명}/test-finished-*.png pr-results/{PR-이름}/screenshots/
+
 # 파일명을 의미있게 변경
-mv screenshots/test-finished-1.png screenshots/1-login-page.png
-mv screenshots/test-finished-2.png screenshots/2-cart-add.png
+cd pr-results/{PR-이름}/screenshots
+mv test-finished-1.png 1-login-page.png
+mv test-finished-2.png 2-cart-add.png
 ```
 
 #### 5.2 테스트-결과.md 작성
-`테스트-결과.md` 파일을 생성하고 테스트 결과를 기록합니다.
+`pr-results/{PR-이름}/테스트-결과.md` 파일을 생성하고 테스트 결과를 기록합니다.
 스크린샷은 `screenshots/` 폴더의 이미지를 참조합니다.
 (자세한 내용은 "테스트 실행 및 결과 문서화" 참고)
 
-### 6단계: PR 리뷰 및 승인
+### 6단계: PR에 테스트 결과 코멘트 작성
 
-체크리스트를 확인하고 PR에 테스트 결과를 코멘트로 추가합니다.
+테스트 완료 후, GitHub CLI를 사용하여 PR에 테스트 결과를 코멘트로 추가합니다.
+
+#### 6.1 GitHub CLI 설치 및 인증
+```bash
+# GitHub CLI 설치 (macOS)
+brew install gh
+
+# GitHub CLI 설치 (Windows)
+winget install --id GitHub.cli
+
+# GitHub 인증
+gh auth login
+```
+
+#### 6.2 PR 코멘트 작성
+```bash
+# PR 번호로 코멘트 작성
+gh pr comment {PR번호} --body "$(cat <<'EOF'
+## 🧪 리그레션 테스트 결과
+
+### 테스트 환경
+- **테스트 일시**: $(date '+%Y-%m-%d %H:%M')
+- **브랜치**: {브랜치명}
+- **테스트 실행자**: {이름}
+
+### 테스트 결과 요약
+
+| 테스트 케이스 | 상태 | 비고 |
+|--------------|------|------|
+| 테스트 1 | ✅ 통과 | - |
+| 테스트 2 | ✅ 통과 | - |
+| 테스트 3 | ❌ 실패 | 원인 설명 |
+
+**전체 결과**: X/Y 통과 (Z%)
+
+### 상세 내용
+- 📄 [PR 분석 문서](regression-tests/pr-results/{PR-이름}/PR-분석.md)
+- 📋 [테스트 결과 문서](regression-tests/pr-results/{PR-이름}/테스트-결과.md)
+- 📸 스크린샷: `regression-tests/pr-results/{PR-이름}/screenshots/`
+
+### 결론
+- [ ] ✅ 승인 가능 (모든 테스트 통과)
+- [ ] ⚠️ 수정 필요 (이슈 해결 후 재테스트)
+- [ ] ❌ 승인 불가 (심각한 결함 발견)
+EOF
+)"
+
+# 또는 파일에서 읽어서 코멘트 작성
+gh pr comment {PR번호} --body-file regression-tests/pr-results/{PR-이름}/pr-comment.md
+```
+
+#### 6.3 자동화 스크립트 활용
+PR 코멘트 작성을 자동화하려면 `post-comment.sh` 스크립트를 사용합니다.
+(자세한 내용은 "PR 코멘트 자동화" 섹션 참고)
+
+### 7단계: PR 리뷰 및 승인
+
+체크리스트를 확인하고 최종 승인 여부를 결정합니다.
 
 ---
 
@@ -906,6 +1008,210 @@ Running 4 tests using 1 worker
 
 ---
 
+## PR 코멘트 자동화
+
+테스트 결과를 GitHub PR에 자동으로 코멘트로 작성하는 방법을 설명합니다.
+
+### PR 코멘트 템플릿 파일 생성
+
+PR 코멘트용 마크다운 파일을 생성하여 재사용합니다.
+
+**pr-comment.md 템플릿**:
+```markdown
+## 🧪 리그레션 테스트 결과
+
+### 📋 테스트 정보
+| 항목 | 내용 |
+|------|------|
+| **PR** | #{PR번호} {PR 제목} |
+| **테스트 일시** | YYYY-MM-DD HH:MM |
+| **테스트 실행자** | {이름} |
+| **브랜치** | {브랜치명} |
+
+### 📊 테스트 결과 요약
+
+| 테스트 케이스 | 상태 | 소요 시간 | 비고 |
+|--------------|------|----------|------|
+| {테스트 1} | ✅ 통과 | 2.3s | - |
+| {테스트 2} | ✅ 통과 | 1.8s | - |
+| {테스트 3} | ❌ 실패 | 3.2s | {원인} |
+
+**전체 결과**: X/Y 통과 (Z%)
+
+### 🔍 상세 내용
+- 📄 PR 분석: `regression-tests/pr-results/{PR-이름}/PR-분석.md`
+- 📋 테스트 결과: `regression-tests/pr-results/{PR-이름}/테스트-결과.md`
+- 📸 스크린샷: `regression-tests/pr-results/{PR-이름}/screenshots/`
+
+### 🐛 발견된 이슈
+> 이슈가 없으면 이 섹션을 제거하세요.
+
+1. **이슈 제목**: 설명
+   - 심각도: High/Medium/Low
+   - 재현 방법: ...
+
+### ✅ 결론
+
+- [x] 승인 가능 (모든 테스트 통과)
+- [ ] 수정 필요 (이슈 해결 후 재테스트)
+- [ ] 승인 불가 (심각한 결함 발견)
+
+---
+*🤖 이 코멘트는 리그레션 테스트 워크플로우에 따라 작성되었습니다.*
+```
+
+### GitHub CLI를 이용한 코멘트 작성
+
+#### 기본 사용법
+```bash
+# 현재 디렉토리의 PR에 코멘트 (브랜치 기준)
+gh pr comment --body-file regression-tests/{PR-이름}/pr-comment.md
+
+# PR 번호로 직접 지정
+gh pr comment 123 --body-file regression-tests/{PR-이름}/pr-comment.md
+
+# PR URL로 지정
+gh pr comment https://github.com/owner/repo/pull/123 --body-file pr-comment.md
+```
+
+#### 인라인 코멘트 작성
+```bash
+# 간단한 테스트 결과 코멘트
+gh pr comment 123 --body "## 🧪 테스트 결과: ✅ 모든 테스트 통과 (5/5)"
+
+# 여러 줄 코멘트 (HEREDOC 사용)
+gh pr comment 123 --body "$(cat <<'EOF'
+## 🧪 리그레션 테스트 결과
+
+✅ **모든 테스트 통과** (5/5)
+
+| 테스트 | 결과 |
+|--------|------|
+| 로그인 API | ✅ |
+| 장바구니 추가 | ✅ |
+| 주문 생성 | ✅ |
+
+상세 내용은 `regression-tests/장바구니-리팩토링/테스트-결과.md` 참고
+EOF
+)"
+```
+
+### 자동화 스크립트
+
+PR 코멘트 작성을 자동화하는 스크립트입니다.
+
+**post-pr-comment.sh**:
+```bash
+#!/bin/bash
+
+# 사용법: ./post-pr-comment.sh <PR번호> <PR폴더명>
+# 예시: ./post-pr-comment.sh 123 장바구니-리팩토링
+
+PR_NUMBER=$1
+PR_FOLDER=$2
+
+if [ -z "$PR_NUMBER" ] || [ -z "$PR_FOLDER" ]; then
+    echo "사용법: $0 <PR번호> <PR폴더명>"
+    echo "예시: $0 123 장바구니-리팩토링"
+    exit 1
+fi
+
+COMMENT_FILE="regression-tests/pr-results/${PR_FOLDER}/pr-comment.md"
+
+if [ ! -f "$COMMENT_FILE" ]; then
+    echo "오류: ${COMMENT_FILE} 파일이 존재하지 않습니다."
+    exit 1
+fi
+
+echo "PR #${PR_NUMBER}에 테스트 결과 코멘트를 작성합니다..."
+gh pr comment "$PR_NUMBER" --body-file "$COMMENT_FILE"
+
+if [ $? -eq 0 ]; then
+    echo "✅ 코멘트 작성 완료!"
+else
+    echo "❌ 코멘트 작성 실패"
+    exit 1
+fi
+```
+
+**스크립트 사용법**:
+```bash
+# 스크립트 실행 권한 부여
+chmod +x post-pr-comment.sh
+
+# 실행
+./post-pr-comment.sh 123 장바구니-리팩토링
+```
+
+### Playwright 테스트 결과 자동 파싱
+
+Playwright 테스트 결과를 자동으로 파싱하여 PR 코멘트를 생성하는 스크립트입니다.
+
+**generate-pr-comment.sh**:
+```bash
+#!/bin/bash
+
+# 사용법: ./generate-pr-comment.sh <PR폴더명>
+
+PR_FOLDER=$1
+PLAYWRIGHT_DIR="regression-tests/playwright-tests"
+OUTPUT_FILE="regression-tests/pr-results/${PR_FOLDER}/pr-comment.md"
+
+# Playwright JSON 리포트 생성 (먼저 테스트 실행 필요)
+# npx playwright test --reporter=json > test-results.json
+
+# 테스트 결과 파싱 (test-results 디렉토리 기반)
+TOTAL_TESTS=$(find "${PLAYWRIGHT_DIR}/test-results" -name "*.png" 2>/dev/null | wc -l)
+PASSED_TESTS=$TOTAL_TESTS  # 실패 시 별도 처리 필요
+
+# PR 코멘트 생성
+cat > "$OUTPUT_FILE" << EOF
+## 🧪 리그레션 테스트 결과
+
+### 📋 테스트 정보
+| 항목 | 내용 |
+|------|------|
+| **테스트 일시** | $(date '+%Y-%m-%d %H:%M') |
+| **테스트 폴더** | ${PR_FOLDER} |
+
+### 📊 테스트 결과
+- **실행된 테스트**: ${TOTAL_TESTS}개
+- **스크린샷**: ${TOTAL_TESTS}개 생성됨
+
+### 🔍 상세 내용
+- 📋 테스트 결과: \`regression-tests/pr-results/${PR_FOLDER}/테스트-결과.md\`
+- 📸 스크린샷: \`regression-tests/pr-results/${PR_FOLDER}/screenshots/\`
+
+---
+*🤖 자동 생성된 코멘트 ($(date '+%Y-%m-%d %H:%M'))*
+EOF
+
+echo "✅ PR 코멘트 파일 생성: ${OUTPUT_FILE}"
+```
+
+### 기존 코멘트 수정하기
+
+이전에 작성한 코멘트를 수정해야 할 경우:
+
+```bash
+# PR의 코멘트 목록 확인
+gh pr view 123 --comments
+
+# 특정 코멘트 수정 (코멘트 ID 필요)
+gh api repos/{owner}/{repo}/issues/comments/{comment_id} \
+  -X PATCH \
+  -F body='수정된 내용'
+
+# 또는 새 코멘트로 업데이트 내용 추가
+gh pr comment 123 --body "## 🔄 테스트 결과 업데이트
+
+이전 이슈가 수정되어 재테스트를 진행했습니다.
+
+✅ **모든 테스트 통과** (5/5)"
+```
+
+---
+
 ## PR 승인 전 체크리스트
 
 ### 코드 레벨
@@ -930,6 +1236,11 @@ Running 4 tests using 1 worker
 - [ ] 테스트-결과.md 작성 완료
 - [ ] 스크린샷이 문서에 포함됨
 - [ ] 발견된 이슈 기록
+
+### PR 코멘트
+- [ ] pr-comment.md 작성 완료
+- [ ] GitHub PR에 테스트 결과 코멘트 작성
+- [ ] 이슈 발견 시 코멘트에 명시
 
 ### 최종 확인
 - [ ] 기존 기능에 영향 없음 (리그레션 없음)
@@ -1156,6 +1467,7 @@ test.afterEach(async ({ request }) => {
 - [Debugging Tests](https://playwright.dev/docs/debug)
 
 ### Store 프로젝트 관련
+- [통합-테스트-스위트-가이드.md](./통합-테스트-스위트-가이드.md) - 통합 테스트 스위트 관리 가이드
 - `store/CLAUDE.md` - 프로젝트 아키텍처 및 개발 가이드
 - `store/README.md` - 프로젝트 개요
 
@@ -1181,3 +1493,16 @@ test.afterEach(async ({ request }) => {
   - 스크린샷 정리 프로세스 추가 (test-results → screenshots)
   - 워크플로우 5단계에 스크린샷 정리 과정 추가
   - 스크린샷 자동화 스크립트 예시 추가
+- **v1.3** (2026-01-09):
+  - PR 코멘트 자동화 섹션 추가 (GitHub CLI 활용)
+  - 워크플로우 6단계에 PR 코멘트 작성 과정 추가
+  - pr-comment.md 템플릿 추가
+  - PR 코멘트 자동화 스크립트 (post-pr-comment.sh, generate-pr-comment.sh) 추가
+  - PR 승인 전 체크리스트에 PR 코멘트 항목 추가
+- **v1.4** (2026-01-09):
+  - 폴더 구조 개편: 통합 테스트 스위트와 PR 결과 분리
+    - `playwright-tests/`: 통합 테스트 스위트 (테스트 코드 누적)
+    - `pr-results/`: PR별 테스트 결과 문서 및 스크린샷
+  - 통합-테스트-스위트-가이드.md 문서 분리 및 상호 참조 추가
+  - 워크플로우 단계 경로 업데이트
+  - PR 태그 (`@pr-{번호}`) 활용 가이드 추가
