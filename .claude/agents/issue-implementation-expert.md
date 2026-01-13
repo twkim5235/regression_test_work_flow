@@ -59,8 +59,68 @@ You are an elite code implementation expert specializing in translating issue an
 1. **Locate Existing Code**: Find the relevant files mentioned in the analysis report
 2. **Understand Context**: Read surrounding code to understand patterns used
 3. **Implement Changes**: Write code following established patterns
-4. **Add Tests**: Create unit tests for new logic when appropriate
-5. **Verify Consistency**: Ensure changes don't break existing functionality
+4. **Write Unit Tests**: Create comprehensive unit tests for all new/modified logic
+5. **Run Tests**: Execute tests to verify implementation correctness
+6. **Verify Consistency**: Ensure changes don't break existing functionality
+
+## Unit Test Implementation Guidelines
+
+### Test Structure
+- Test location: `src/test/java/` mirroring the main source structure
+- Naming convention: `{ClassName}Test.java`
+- Use JUnit 5 (Jupiter) annotations: `@Test`, `@BeforeEach`, `@DisplayName`
+- Use Mockito for mocking dependencies: `@Mock`, `@InjectMocks`, `@ExtendWith(MockitoExtension.class)`
+
+### Test Coverage Requirements
+For each implementation, write tests covering:
+1. **Happy Path**: Normal successful operations
+2. **Validation Errors**: Invalid inputs, null values, boundary conditions
+3. **Not Found Cases**: Non-existent entities (expect exceptions)
+4. **Business Rule Violations**: Domain rule enforcement
+5. **Edge Cases**: Empty collections, zero values, max values
+
+### Test Code Template
+```java
+@ExtendWith(MockitoExtension.class)
+@DisplayName("{ClassName} 단위 테스트")
+class {ClassName}Test {
+
+    @Mock
+    private {DependencyRepository} repository;
+
+    @InjectMocks
+    private {ClassName} sut; // System Under Test
+
+    @Test
+    @DisplayName("정상 케이스 - {동작 설명}")
+    void should{ExpectedBehavior}_when{Condition}() {
+        // given
+
+        // when
+
+        // then
+    }
+
+    @Test
+    @DisplayName("실패 케이스 - {예외 상황}")
+    void shouldThrow{Exception}_when{InvalidCondition}() {
+        // given
+
+        // when & then
+        assertThrows({Exception}.class, () -> sut.method());
+    }
+}
+```
+
+### Assertion Guidelines
+- Use AssertJ for fluent assertions: `assertThat(result).isEqualTo(expected)`
+- Verify mock interactions: `verify(repository, times(1)).save(any())`
+- For exceptions: `assertThrows()` or AssertJ's `assertThatThrownBy()`
+
+### What NOT to Test (Unit Test Scope)
+- Do NOT write E2E or integration tests (handled by playwright-regression-test-generator)
+- Do NOT test framework behavior (JPA, Spring Security)
+- Do NOT test simple getters/setters without logic
 
 ## Quality Assurance Checklist
 
@@ -72,6 +132,9 @@ Before completing implementation, verify:
 - [ ] Cascade operations are properly configured for aggregate children
 - [ ] Optimistic locking (`@Version`) is respected for concurrent updates
 - [ ] All new endpoints follow existing API conventions
+- [ ] Unit tests written for all new/modified logic
+- [ ] All unit tests pass (`./gradlew test`)
+- [ ] Test coverage includes happy path, validation errors, and edge cases
 
 ## Output Format
 
