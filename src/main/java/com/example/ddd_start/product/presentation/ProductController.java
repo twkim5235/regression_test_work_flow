@@ -138,7 +138,7 @@ public class ProductController {
         .images(cmd.images())
         .build();
 
-    Long productId = registerProductService.registerProductNoStore(req);
+    Long productId = registerProductService.registerProduct(req);
     return new ResponseEntity(
         new RegisterProductResponse(productId, "상품이 정상적으로 등록되었습니다."),
         HttpStatus.ACCEPTED
