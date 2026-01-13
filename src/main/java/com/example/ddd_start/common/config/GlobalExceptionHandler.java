@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RestControllerAdvice
@@ -67,6 +68,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleStoreBlockedException(StoreBlockedException e) {
         log.warn("차단된 스토어: {}", e.getMessage());
         return createErrorResponse(HttpStatus.FORBIDDEN, "현재 이용할 수 없는 스토어입니다.");
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, Object>> handleNoSuchElementException(NoSuchElementException e) {
+        log.warn("리소스를 찾을 수 없음: {}", e.getMessage());
+        return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
