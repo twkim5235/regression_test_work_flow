@@ -61,6 +61,8 @@ public class Product {
 
   public Product(String title, String slug, Money price, String description, Long categoryId,
       List<String> images, Store store) {
+    validatePrice(price);
+    validateCategoryId(categoryId);
     this.title = title;
     this.slug = slug;
     this.price = price;
@@ -72,9 +74,34 @@ public class Product {
     this.store = store;
   }
 
+  /**
+   * 가격 유효성 검증
+   * - null 체크
+   * - 0원 이하 체크
+   */
+  private void validatePrice(Money price) {
+    if (price == null || price.getAmount() == null) {
+      throw new IllegalArgumentException("상품 가격은 필수입니다.");
+    }
+    if (price.getAmount() <= 0) {
+      throw new IllegalArgumentException("상품 가격은 0원보다 커야 합니다.");
+    }
+  }
+
+  /**
+   * 카테고리 ID 유효성 검증
+   */
+  private void validateCategoryId(Long categoryId) {
+    if (categoryId == null) {
+      throw new IllegalArgumentException("카테고리 ID는 필수입니다.");
+    }
+  }
+
   public void updateProduct(String title, String slug, Money price,
       String description, Long categoryId,
       List<String> images, Store store) {
+    validatePrice(price);
+    validateCategoryId(categoryId);
     this.title = title;
     this.slug = slug;
     this.price = price;

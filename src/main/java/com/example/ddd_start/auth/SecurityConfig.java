@@ -11,6 +11,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -40,13 +41,21 @@ public class SecurityConfig {
                     new AntPathRequestMatcher("/checkout"),
                     new AntPathRequestMatcher("/members/join"),
                     new AntPathRequestMatcher("/members/sign-in"),
-                    new AntPathRequestMatcher("/products"),
-                    new AntPathRequestMatcher("/products/**"),
                     new AntPathRequestMatcher("/swagger-ui.html"),
                     new AntPathRequestMatcher("/v3/api-docs/**"),
                     new AntPathRequestMatcher("/swagger-ui/**"),
                     new AntPathRequestMatcher("/categories")
                 ).permitAll()
+                // 상품 조회는 누구나 가능
+                .requestMatchers(new AntPathRequestMatcher("/products", HttpMethod.GET.name())).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/products/**", HttpMethod.GET.name())).permitAll()
+                // 상품 등록, 수정, 삭제는 인증 필요
+                .requestMatchers(new AntPathRequestMatcher("/products", HttpMethod.POST.name())).authenticated()
+                .requestMatchers(new AntPathRequestMatcher("/products/**", HttpMethod.POST.name())).authenticated()
+                .requestMatchers(new AntPathRequestMatcher("/products", HttpMethod.PUT.name())).authenticated()
+                .requestMatchers(new AntPathRequestMatcher("/products/**", HttpMethod.PUT.name())).authenticated()
+                .requestMatchers(new AntPathRequestMatcher("/products", HttpMethod.DELETE.name())).authenticated()
+                .requestMatchers(new AntPathRequestMatcher("/products/**", HttpMethod.DELETE.name())).authenticated()
                 .anyRequest().authenticated()
         )
         .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
