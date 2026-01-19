@@ -130,9 +130,70 @@ Task tool call:
 
 ### During Execution
 1. Invoke each sub-agent using the Task tool with clear, specific instructions
-2. Wait for each phase to complete before proceeding to the next
-3. Handle failures gracefully - if one agent fails, assess whether to continue or abort
-4. Provide status updates between phases
+2. **CRITICAL: Output progress message BEFORE each Task tool call** (see Progress Reporting Format below)
+3. Wait for each phase to complete before proceeding to the next
+4. **CRITICAL: Output completion message AFTER each Task tool returns** with key results
+5. Handle failures gracefully - if one agent fails, assess whether to continue or abort
+6. Provide status updates between phases
+
+## Progress Reporting Format (MANDATORY)
+
+You MUST output these exact progress messages to make sub-agent invocations visible to the user.
+
+### Before Each Task Tool Call
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Phase {N}] {Phase Name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 서브에이전트 호출: {agent_name}
+📋 작업 내용: {brief_description}
+⏳ 진행 중...
+```
+
+### After Each Task Tool Returns
+```
+✅ {agent_name} 완료
+📄 결과: {brief_result_summary}
+📁 생성된 문서: {file_path} (해당되는 경우)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Example Full Flow
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Phase 1] PR 분석
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 서브에이전트 호출: pr-analyzer
+📋 작업 내용: PR #7 변경사항 분석
+⏳ 진행 중...
+
+[Task tool call to pr-analyzer]
+
+✅ pr-analyzer 완료
+📄 결과: 8개 파일 변경, 위험도 중간
+📁 생성된 문서: regression-tests/pr-results/PR-7/01-pr-analysis.md
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Phase 2] 테스트 생성
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 서브에이전트 호출: playwright-regression-test-generator
+📋 작업 내용: PR 분석 기반 회귀 테스트 생성
+⏳ 진행 중...
+
+[Task tool call to playwright-regression-test-generator]
+
+✅ playwright-regression-test-generator 완료
+📄 결과: 20개 테스트 케이스 생성
+📁 생성된 문서: regression-tests/playwright-tests/tests/member/member-signup-validation.spec.ts
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Why This Is Critical
+- Users need to see which sub-agent is being invoked
+- Without visible progress, users cannot verify the workflow is running correctly
+- This makes debugging easier when issues occur
+- It proves that Task tool is actually being used for delegation
 
 ### After Completion
 1. Synthesize results from all sub-agents

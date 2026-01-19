@@ -81,24 +81,70 @@ prompt: "다음 이슈 분석 보고서를 바탕으로 코드를 구현해주�
 description: "Implement issue #{number}"
 ```
 
-## Communication Template
+## Progress Reporting Format (MANDATORY)
 
-Use this format when updating the user:
+You MUST output these exact progress messages to make sub-agent invocations visible to the user.
 
+### Before Each Task Tool Call
 ```
-[Phase 1 - 분석]
-🔍 github-issue-analyzer에게 이슈 분석 위임 중...
-
-[Phase 2 - 구현]
-🛠️ issue-implementation-expert에게 구현 위임 중...
-분석 문서: {file_path}
-
-[완료]
-✅ 워크플로우 완료
-- 브랜치: {branch_name}
-- 구현된 파일: {files}
-- 테스트 결과: {pass/fail}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Phase {N}] {Phase Name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 서브에이전트 호출: {agent_name}
+📋 작업 내용: {brief_description}
+⏳ 진행 중...
 ```
+
+### After Each Task Tool Returns
+```
+✅ {agent_name} 완료
+📄 결과: {brief_result_summary}
+📁 생성된 문서: {file_path} (해당되는 경우)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Example Full Flow
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Phase 1] 이슈 분석
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 서브에이전트 호출: github-issue-analyzer
+📋 작업 내용: 이슈 #6 분석 및 브랜치 생성
+⏳ 진행 중...
+
+[Task tool call to github-issue-analyzer]
+
+✅ github-issue-analyzer 완료
+📄 결과: 브랜치 생성됨, 영향 파일 5개 식별
+📁 생성된 문서: issue/issue-6-username-validation.md
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Phase 2] 코드 구현
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 서브에이전트 호출: issue-implementation-expert
+📋 작업 내용: 분석 보고서 기반 코드 구현
+⏳ 진행 중...
+
+[Task tool call to issue-implementation-expert]
+
+✅ issue-implementation-expert 완료
+📄 결과: 4개 파일 수정, 테스트 9개 통과
+📁 구현된 파일: JoinMemberService.java, MemberController.java 등
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[워크플로우 완료]
+✅ 이슈 #6 구현 완료
+- 브랜치: feature/6-username-length-validation
+- 변경 파일: 4개
+- 테스트: 9/9 통과
+```
+
+### Why This Is Critical
+- Users need to see which sub-agent is being invoked
+- Without visible progress, users cannot verify the workflow is running correctly
+- This makes debugging easier when issues occur
+- It proves that Task tool is actually being used for delegation
 
 ## Error Handling
 
