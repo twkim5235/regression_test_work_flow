@@ -3,6 +3,7 @@ package com.example.ddd_start.member.presentation;
 import com.example.ddd_start.auth.model.JwtToken;
 import com.example.ddd_start.common.domain.exception.DuplicateEmailException;
 import com.example.ddd_start.common.domain.exception.DuplicateUsernameException;
+import com.example.ddd_start.common.domain.exception.InvalidUsernameLengthException;
 import com.example.ddd_start.common.domain.exception.NoMemberFoundException;
 import com.example.ddd_start.common.domain.exception.PasswordNotMatchException;
 import com.example.ddd_start.member.applicaiton.ChangePasswordService;
@@ -66,6 +67,8 @@ public class MemberController {
     } catch (DuplicateUsernameException e) {
       errors.rejectValue(e.getMessage(), "duplicate");
       return new ResponseEntity("아이디가 중복됩니다.", HttpStatus.BAD_REQUEST);
+    } catch (InvalidUsernameLengthException e) {
+      return new ResponseEntity("아이디는 10자 이하로 입력해주세요.", HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -91,6 +94,8 @@ public class MemberController {
     } catch (DuplicateUsernameException e) {
       errors.rejectValue(e.getMessage(), "duplicate");
       return new ResponseEntity("아이디가 중복됩니다.", HttpStatus.BAD_REQUEST);
+    } catch (InvalidUsernameLengthException e) {
+      return new ResponseEntity("아이디는 10자 이하로 입력해주세요.", HttpStatus.BAD_REQUEST);
     }
   }
 
