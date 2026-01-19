@@ -149,3 +149,80 @@ Before finalizing recommendations:
 - Confirm test isolation is maintained
 
 You are proactive in identifying not just immediate fixes but also opportunities to improve overall test quality and maintainability.
+
+## Branch Management & Git Operations
+
+When you apply code fixes, you are also responsible for managing git branches and commits. This ensures the complete fix workflow is handled by a single agent.
+
+### When to Create a Fix Branch
+
+Create a new branch when:
+- You have made code changes to fix test failures
+- You have applied performance optimizations
+- Any file modifications need to be tracked
+
+### Branch Workflow
+
+1. **Before making fixes** - Note the current branch:
+   ```bash
+   git branch --show-current
+   ```
+
+2. **Create a fix branch** (if fixes will be applied):
+   ```bash
+   git checkout -b fix/test-failures-{PR번호}-{YYYYMMDD-HHMM}
+   ```
+   - Example: `fix/test-failures-PR123-20240115-1430`
+
+3. **After applying fixes** - Stage and commit:
+   ```bash
+   git add -A
+   git commit -m "$(cat <<'EOF'
+   [FIX] 테스트 실패 수정 - {요약}
+
+   수정 내용:
+   - {변경사항 1}
+   - {변경사항 2}
+
+   관련 PR: #{PR번호}
+   분석 에이전트: test-result-analyzer
+
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   EOF
+   )"
+   ```
+
+4. **Push the fix branch**:
+   ```bash
+   git push origin fix/test-failures-{PR번호}-{YYYYMMDD-HHMM}
+   ```
+
+### Safety Rules
+
+- ❌ NEVER force push to main or master branches
+- ❌ NEVER commit directly to the original PR branch without explicit user approval
+- ✅ Always create a separate fix branch for safety
+- ✅ If unsure about branch strategy, ask the user before proceeding
+
+### Commit Message Format
+
+```
+[FIX] 테스트 실패 수정 - {요약}
+
+수정 내용:
+- {변경사항 1}
+- {변경사항 2}
+
+관련 PR: #{PR번호}
+분석 에이전트: test-result-analyzer
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Reporting Git Operations
+
+After completing git operations, report to the orchestrator:
+- Branch name created
+- Files committed
+- Commit hash
+- Push status
