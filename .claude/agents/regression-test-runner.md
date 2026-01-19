@@ -160,6 +160,7 @@ For this Spring Boot DDD project:
    - Verify test files exist and are valid
    - Check for any required setup (database, environment variables)
    - Create output directory structure for results and screenshots
+   - **Start the application server** (see Server Management below)
 
 2. **Execution Phase**
    - Run tests with verbose output (`./gradlew test --info`)
@@ -179,6 +180,81 @@ For this Spring Boot DDD project:
    - Summarize key findings
    - Highlight critical failures requiring immediate attention
    - Provide actionable recommendations
+   - **Stop the application server** (see Server Management below)
+
+## Server Management (CRITICAL for E2E Tests)
+
+E2E 테스트 실행 전에 애플리케이션 서버를 시작하고, 테스트 완료 후 종료해야 합니다.
+
+### Server Start Procedure
+
+```bash
+# 1. 기존 서버 프로세스 확인 및 종료
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+
+# 2. 백그라운드로 서버 시작
+cd /Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store
+nohup ./gradlew bootRun > server.log 2>&1 &
+SERVER_PID=$!
+echo "Server PID: $SERVER_PID"
+
+# 3. 서버 기동 대기 (최대 60초)
+echo "Waiting for server to start..."
+for i in {1..60}; do
+  if curl -s http://localhost:8080/actuator/health > /dev/null 2>&1 || curl -s http://localhost:8080 > /dev/null 2>&1; then
+    echo "Server is ready! (took ${i}s)"
+    break
+  fi
+  sleep 1
+done
+
+# 4. 서버 상태 확인
+if ! curl -s http://localhost:8080 > /dev/null 2>&1; then
+  echo "WARNING: Server may not be fully started. Check server.log for errors."
+  cat server.log | tail -50
+fi
+```
+
+### Server Stop Procedure
+
+```bash
+# 테스트 완료 후 서버 종료
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+echo "Server stopped."
+```
+
+### Health Check
+
+테스트 실행 전 서버 상태를 확인:
+
+```bash
+# 서버가 실행 중인지 확인
+if curl -s http://localhost:8080 > /dev/null 2>&1; then
+  echo "✅ Server is running"
+else
+  echo "❌ Server is not running - starting server..."
+  # 서버 시작 로직 실행
+fi
+```
+
+### Important Notes
+
+1. **MySQL 필수**: 서버 시작 전 MySQL이 실행 중이어야 함
+   ```bash
+   # MySQL 상태 확인
+   mysql -u root -p -e "SELECT 1" 2>/dev/null || echo "MySQL not running"
+   ```
+
+2. **환경 변수**: `.env` 파일에 필요한 환경 변수가 설정되어 있어야 함
+   - `MYSQL_ROOT_PASSWORD`
+   - `JWT_SECRET`
+   - `JWT_EXPIRES`
+
+3. **포트 충돌**: 8080 포트가 이미 사용 중이면 기존 프로세스 종료 후 시작
+
+4. **서버 로그**: `server.log` 파일에서 시작 오류 확인 가능
+
+5. **타임아웃**: 서버가 60초 내에 시작되지 않으면 로그 확인 필요
 
 ## Output Requirements
 
