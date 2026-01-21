@@ -186,17 +186,50 @@ For this Spring Boot DDD project:
 
 E2E 테스트 실행 전에 애플리케이션 서버를 시작하고, 테스트 완료 후 종료해야 합니다.
 
+### Worktree-Based Server Execution (IMPORTANT)
+
+**핵심 개념**: PR 브랜치 테스트 시, 서버는 **worktree 디렉토리**에서 실행하고, 테스트는 **현재 디렉토리**에서 실행합니다.
+
+```
+현재 디렉토리 (store/)              Worktree (store-pr-test/)
+─────────────────────────────      ─────────────────────────────
+.claude/agents/ ✓ 유지              PR 브랜치 코드
+Playwright 테스트 실행              ./gradlew bootRun (서버)
+       │                                    │
+       └──────── HTTP 요청 ─────────────────┘
+                localhost:8080
+```
+
+### Worktree Path Detection
+
+main-orchestrator가 전달한 worktree 경로를 사용합니다. 프롬프트에서 다음 정보를 확인하세요:
+
+```
+**WORKTREE 정보**:
+- Worktree 경로: ../store-pr-test
+- 서버는 worktree 경로에서 실행해주세요
+- 테스트는 현재 디렉토리에서 실행해주세요
+```
+
+- **Worktree 경로가 제공된 경우**: 해당 경로에서 서버 실행
+- **Worktree 경로가 없는 경우**: 현재 디렉토리에서 서버 실행 (기존 동작)
+
 ### Server Start Procedure
 
 ```bash
+# Worktree 경로 설정 (main-orchestrator가 전달한 경로 사용)
+# 기본값: 현재 디렉토리
+WORKTREE_PATH="${WORKTREE_PATH:-/Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store}"
+
 # 1. 기존 서버 프로세스 확인 및 종료
 lsof -ti:8080 | xargs kill -9 2>/dev/null || true
 
-# 2. 백그라운드로 서버 시작
-cd /Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store
+# 2. Worktree 경로에서 백그라운드로 서버 시작
+cd "$WORKTREE_PATH"
 nohup ./gradlew bootRun > server.log 2>&1 &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"
+echo "Server running from: $WORKTREE_PATH"
 
 # 3. 서버 기동 대기 (최대 60초)
 echo "Waiting for server to start..."
@@ -211,8 +244,11 @@ done
 # 4. 서버 상태 확인
 if ! curl -s http://localhost:8080 > /dev/null 2>&1; then
   echo "WARNING: Server may not be fully started. Check server.log for errors."
-  cat server.log | tail -50
+  cat "$WORKTREE_PATH/server.log" | tail -50
 fi
+
+# 5. 현재 디렉토리로 복귀 (테스트 실행용)
+cd /Users/xodn5235/Documents/Study/claude_code_work_flow/test_work_flow/store
 ```
 
 ### Server Stop Procedure
@@ -239,22 +275,28 @@ fi
 
 ### Important Notes
 
-1. **MySQL 필수**: 서버 시작 전 MySQL이 실행 중이어야 함
+1. **Worktree 경로 확인**: 프롬프트에서 전달받은 worktree 경로를 반드시 사용
+   - 경로가 없으면 현재 디렉토리 사용
+
+2. **MySQL 필수**: 서버 시작 전 MySQL이 실행 중이어야 함
    ```bash
    # MySQL 상태 확인
    mysql -u root -p -e "SELECT 1" 2>/dev/null || echo "MySQL not running"
    ```
 
-2. **환경 변수**: `.env` 파일에 필요한 환경 변수가 설정되어 있어야 함
+3. **환경 변수**: `.env` 파일에 필요한 환경 변수가 설정되어 있어야 함
    - `MYSQL_ROOT_PASSWORD`
    - `JWT_SECRET`
    - `JWT_EXPIRES`
 
-3. **포트 충돌**: 8080 포트가 이미 사용 중이면 기존 프로세스 종료 후 시작
+4. **포트 충돌**: 8080 포트가 이미 사용 중이면 기존 프로세스 종료 후 시작
 
-4. **서버 로그**: `server.log` 파일에서 시작 오류 확인 가능
+5. **서버 로그**: worktree 경로의 `server.log` 파일에서 시작 오류 확인 가능
 
-5. **타임아웃**: 서버가 60초 내에 시작되지 않으면 로그 확인 필요
+6. **타임아웃**: 서버가 60초 내에 시작되지 않으면 로그 확인 필요
+
+7. **테스트 실행 위치**: 테스트는 항상 현재 디렉토리(store/)에서 실행
+   - Playwright 설정 및 테스트 코드가 현재 디렉토리에 있음
 
 ## Output Requirements
 
