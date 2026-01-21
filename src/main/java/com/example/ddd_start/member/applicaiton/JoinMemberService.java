@@ -73,7 +73,7 @@ public class JoinMemberService {
 
   private void checkEmpty(String value, String propertyName) {
     if (value == null || value.isEmpty()) {
-      throw new NullPointerException(propertyName);
+      throw new IllegalArgumentException(propertyName + "을(를) 입력해주세요.");
     }
   }
 
