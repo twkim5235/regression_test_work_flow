@@ -77,6 +77,98 @@ test('API: [Endpoint] - [Scenario]', async ({ request }) => {
 });
 ```
 
+### E2E Web Testing Pattern (for Thymeleaf web views)
+
+**스크린샷이 필요한 경우 반드시 E2E 웹 테스트를 생성하세요.**
+
+```typescript
+test('UI: 회원가입 페이지 - 정상 가입 플로우', async ({ page }) => {
+  // 1. 페이지 이동
+  await page.goto('/signup');
+
+  // 2. 스크린샷: 초기 상태
+  await page.screenshot({
+    path: 'screenshots/signup/01-initial.png',
+    fullPage: true
+  });
+
+  // 3. 폼 입력
+  await page.fill('#username', 'testuser');
+  await page.fill('#email', 'test@example.com');
+  await page.fill('#password', 'password123');
+
+  // 4. 스크린샷: 입력 완료 상태
+  await page.screenshot({
+    path: 'screenshots/signup/02-filled.png'
+  });
+
+  // 5. 제출
+  await page.click('button[type="submit"]');
+
+  // 6. 결과 확인
+  await expect(page).toHaveURL('/login');
+
+  // 7. 스크린샷: 최종 상태
+  await page.screenshot({
+    path: 'screenshots/signup/03-success.png'
+  });
+});
+```
+
+### Screenshot Capture Guidelines
+
+**스크린샷 저장 위치**: `regression-tests/playwright-tests/screenshots/{feature}/`
+
+| 시점 | 파일명 패턴 | 설명 |
+|-----|------------|------|
+| 초기 상태 | `01-initial.png` | 페이지 로드 직후 |
+| 입력 완료 | `02-filled.png` | 폼 입력 완료 후 |
+| 액션 후 | `03-after-action.png` | 버튼 클릭 등 액션 후 |
+| 최종 상태 | `04-final.png` | 테스트 완료 시 |
+| 실패 시 | `failure-{timestamp}.png` | 테스트 실패 시점 |
+
+```typescript
+// 스크린샷 헬퍼 함수 패턴
+async function captureScreenshot(page: Page, name: string, feature: string) {
+  const dir = `screenshots/${feature}`;
+  await page.screenshot({
+    path: `${dir}/${name}.png`,
+    fullPage: true
+  });
+}
+```
+
+### Web View Templates Mapping
+
+이 프로젝트의 웹뷰와 해당 테스트 시나리오:
+
+| 템플릿 | URL | 테스트 시나리오 |
+|--------|-----|----------------|
+| `index.html` | `/` | 메인 페이지 로드, 상품 목록 표시 |
+| `login.html` | `/login` | 로그인 성공/실패, 유효성 검증 |
+| `signup.html` | `/signup` | 회원가입 플로우, 입력 유효성 |
+| `products.html` | `/products` | 상품 목록, 검색, 필터링 |
+| `cart.html` | `/cart` | 장바구니 추가/삭제/수량변경 |
+| `checkout.html` | `/checkout` | 결제 플로우, 쿠폰 적용 |
+| `orders.html` | `/orders` | 주문 내역 조회, 주문 취소 |
+
+### Test Type Selection Criteria
+
+**테스트 유형 선택 기준:**
+
+| 조건 | 테스트 유형 | 스크린샷 |
+|------|-----------|---------|
+| UI 변경이 포함된 PR | E2E 웹 테스트 | O |
+| 사용자 플로우 검증 필요 | E2E 웹 테스트 | O |
+| 순수 API 로직 변경 | API 테스트 | X |
+| 백엔드 비즈니스 로직 | API 테스트 | X |
+| 전체 플로우 검증 | E2E 웹 + API 테스트 | O |
+
+**PR 분석 시 다음을 확인:**
+1. 변경된 파일에 `templates/*.html`이 포함되어 있으면 → E2E 웹 테스트
+2. Controller에서 `ModelAndView` 반환하면 → E2E 웹 테스트
+3. REST API만 변경되었으면 → API 테스트
+
 ### Key Patterns for This Project
 
 1. **Authentication Tests**: Always test JWT flow
