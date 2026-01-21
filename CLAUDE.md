@@ -308,3 +308,73 @@ Based on recent commits, use Korean messages with prefixes:
 - `[REFACTOR]` - Code refactoring
 
 Example: `[HOT-FIX] 프론트엔드 연동을 위한 hotfix - 주문 생성시 amount 계산은 백엔드가 하므로, 요청에서 제거`
+
+## PR QA 워크플로우
+
+PR 분석 및 테스트 요청 시 다음 순서로 에이전트를 호출합니다.
+
+### 워크플로우 순서
+
+1. **pr-analyzer** → PR 변경사항 분석
+   - PR URL 또는 번호 제공 필요
+   - 출력: `regression-tests/pr-results/PR-{N}/analysis-report.md`
+
+2. **playwright-regression-test-generator** → 회귀 테스트 생성
+   - PR 분석 결과를 바탕으로 테스트 생성
+   - 출력: `regression-tests/playwright-tests/tests/{domain}/*.spec.ts`
+
+3. **regression-test-runner** → 테스트 실행 및 결과 문서화
+   - Git Worktree를 사용하여 PR 브랜치 서버 실행
+   - 출력: `regression-tests/pr-results/PR-{N}/regression-test-report-*.md`
+
+4. **test-report-commenter** → PR에 테스트 결과 코멘트 게시
+   - `gh pr comment` 사용
+   - PR에 테스트 결과 요약 게시
+
+5. **test-result-analyzer** → 실패 분석 및 수정
+   - 테스트 실패 원인 분석
+   - 필요시 코드 수정 및 커밋
+
+### Git Worktree 사용 (중요)
+
+PR 브랜치 테스트 시 `.claude/agents/` 설정을 유지하기 위해 Worktree를 사용합니다:
+
+```bash
+# Worktree 생성
+git fetch origin pull/{PR_NUMBER}/head:pr-{PR_NUMBER}
+git worktree add ../store-pr-test pr-{PR_NUMBER}
+
+# 서버 실행 (worktree에서)
+cd ../store-pr-test && ./gradlew bootRun
+
+# 테스트 실행 (현재 디렉토리에서)
+cd regression-tests/playwright-tests && npx playwright test
+
+# Worktree 정리
+git worktree remove ../store-pr-test --force
+git branch -D pr-{PR_NUMBER}
+```
+
+### 사용 예시
+
+```
+사용자: "PR #7 분석하고 테스트 실행해줘"
+사용자: "https://github.com/owner/repo/pull/123 테스트해줘"
+사용자: "새로 푸시한 PR 전체 QA 진행해줘"
+```
+
+### 결과물 디렉토리 구조
+
+```
+regression-tests/
+├── playwright-tests/
+│   └── tests/
+│       └── {domain}/
+│           └── *.spec.ts
+└── pr-results/
+    └── PR-{N}/
+        ├── analysis-report.md
+        ├── regression-test-report-*.md
+        ├── SUMMARY.md
+        └── screenshots/
+```
