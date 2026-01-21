@@ -1,62 +1,132 @@
-# Readme.md
+# Store Backend - Claude Code 자동화 워크플로우
 
+Spring Boot DDD 기반 쇼핑몰 백엔드 + Claude Code 에이전트 자동화 시스템
 
+## 프로젝트 개요
 
-### 본 프로젝트는 테스트 워크플로우를 적용하기 위한 프로젝트입니다.
+- **Tech Stack**: Spring Boot 2.7.2, Java 17, MySQL, QueryDSL
+- **Architecture**: Domain-Driven Design (DDD)
+- **자동화**: Claude Code 에이전트 기반 PR 분석, 테스트 생성/실행, 이슈 구현
 
+## 자동화 워크플로우
 
+### 1. PR QA 워크플로우
 
-### 프로젝트 설명
+PR 분석부터 테스트 실행, 결과 리포팅까지 자동화된 품질 보증 프로세스
 
-- Spring boot 2.7.2, Java 17
-- DDD를 기반으로 한, 쇼핑몰 서비스
-- 초기에는 직접 코딩을 했으나, 후반은 claude code를 활용하여 진행함
-  - 웹 템플릿은 모두, claude code를 활용
-- Claude code를 이용하여, PR-리그레션-테스트-워크플로우.md 생성
-- 웹이 존재한다면, playwirght를 이용한 e2e테스트를 진행하며, 웹이 존재하지 않을 시는 api테스트만 진행합니다.
+```
+사용자: "PR #7 분석하고 테스트 실행해줘"
+```
 
+**워크플로우 순서:**
+1. **pr-analyzer** → PR 변경사항 분석
+2. **playwright-regression-test-generator** → 회귀 테스트 생성
+3. **regression-test-runner** → 테스트 실행 (Git Worktree 사용)
+4. **test-report-commenter** → PR에 테스트 결과 코멘트 게시
+5. **test-result-analyzer** → 실패 분석 및 수정
 
+### 2. GitHub Issue 워크플로우
 
-### 테스트 자동화 이용 방법
+이슈 분석부터 코드 구현까지 자동화
 
-~~~bash
-1. claude code 실행
-bash: claude
+```
+사용자: "이슈 #3 분석하고 구현해줘"
+```
 
-2. PR-리그레션-테스트-워크플로우.md에서, 테스트환경 수정
+**워크플로우 순서:**
+1. **github-issue-analyzer** → 이슈 분석 및 브랜치 생성
+2. **issue-implementation-expert** → 코드 구현
 
-3. PR-리그레션-테스트-워크플로우.md 읽기 명령 후 테스트를 진행할 PR 링크 첨부
----------------------------------------------------------------
-PR-리그레션-테스트-워크플로우.md 읽은 후, "http:PR Link"를 진행해줘
----------------------------------------------------------------
+## 에이전트 목록
 
-4. regression-test 폴더를 통해 test 결과 확인
-~~~
+| 에이전트 | 역할 |
+|---------|------|
+| `pr-analyzer` | PR 변경사항 분석, 리스크 평가 |
+| `playwright-regression-test-generator` | Playwright 회귀 테스트 코드 생성 |
+| `regression-test-runner` | 테스트 실행 및 결과 문서화 |
+| `test-report-commenter` | PR에 테스트 결과 코멘트 게시 |
+| `test-result-analyzer` | 테스트 실패 분석 및 수정 |
+| `github-issue-analyzer` | GitHub 이슈 분석 및 브랜치 생성 |
+| `issue-implementation-expert` | 이슈 기반 코드 구현 |
+| `issue-workflow-coordinator` | 이슈 분석→구현 워크플로우 조율 |
 
+## 사용 방법
 
+### 1. Claude Code 실행
 
-### 테스트 결과 예시
+```bash
+claude
+```
 
-1. 테스트 파일
+### 2. PR QA 진행
 
-![image-20260107193114807](./img/image-20260107193114807.png)
+```
+# PR 분석 및 테스트 실행
+PR #7 분석하고 테스트 실행해줘
 
-- 테스트를 진행하면, 위와 같이 테스트 결과에 대한 파일들이 정리 됩니다.
+# PR URL로도 가능
+https://github.com/owner/repo/pull/123 테스트해줘
+```
 
+### 3. GitHub Issue 구현
 
+```
+# 이슈 분석 및 구현
+이슈 #3 분석하고 구현해줘
 
-2. PR-분석
+# 이슈 URL로도 가능
+https://github.com/owner/repo/issues/42 구현해줘
+```
 
-   ![image-20260107193211730](./img/image-20260107193211730.png)
+## 결과물 디렉토리 구조
 
-   - 테스트를 진행할 PR에 대하여 정리한 파일입니다.
+```
+regression-tests/
+├── playwright-tests/
+│   └── tests/
+│       └── {domain}/
+│           └── *.spec.ts          # 생성된 테스트 코드
+└── pr-results/
+    └── PR-{N}/
+        ├── analysis-report.md     # PR 분석 리포트
+        ├── regression-test-report-*.md  # 테스트 실행 결과
+        ├── SUMMARY.md             # 요약
+        └── screenshots/           # 테스트 스크린샷
+```
 
-3. 테스트-결과
+## 테스트 결과 예시
 
-   ![image-20260107193249208](./img/image-20260107193246982.png)
+### PR 분석 리포트
+![PR 분석](./img/image-20260107193211730.png)
 
-   - 테스트 결과에 대하여 정리한 파일입니다.
+### 테스트 실행 결과
+![테스트 결과](./img/image-20260107193246982.png)
 
-   ![image-20260107193318079](./img/image-20260107193318079.png)
+### 스크린샷 증거
+![스크린샷](./img/image-20260107193318079.png)
 
-   - 실제 테스트가 제대로 진행됬는지에 대한 확인을 위한 스크린샷 결과 입니다.
+## Git Worktree 사용
+
+PR 브랜치 테스트 시 `.claude/agents/` 설정을 유지하기 위해 Worktree를 사용합니다:
+
+```bash
+# 현재 디렉토리: 에이전트 설정 유지, 테스트 코드 실행
+# Worktree 디렉토리: PR 브랜치 서버 실행
+```
+
+자세한 내용은 [CLAUDE.md](./CLAUDE.md)의 "PR QA 워크플로우" 섹션 참조.
+
+## 프로젝트 구조
+
+```
+store/
+├── .claude/
+│   └── agents/                    # Claude Code 에이전트 설정
+├── src/
+│   └── main/java/.../             # Spring Boot 애플리케이션
+├── regression-tests/
+│   ├── playwright-tests/          # Playwright 테스트 코드
+│   └── pr-results/                # PR별 테스트 결과
+├── CLAUDE.md                      # Claude Code 프로젝트 가이드
+└── README.md
+```
