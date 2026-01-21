@@ -2,6 +2,11 @@ server:
   tomcat:
     threads:
       max: 100
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 spring:
   config:
     import: optional:file:.env[.properties]

@@ -3,6 +3,7 @@ package com.example.ddd_start.member.applicaiton;
 import com.example.ddd_start.common.domain.Address;
 import com.example.ddd_start.common.domain.exception.DuplicateEmailException;
 import com.example.ddd_start.common.domain.exception.DuplicateUsernameException;
+import com.example.ddd_start.common.domain.exception.InvalidUsernameLengthException;
 import com.example.ddd_start.member.applicaiton.event.JoinMemberEvent;
 import com.example.ddd_start.member.applicaiton.model.AddressCommand;
 import com.example.ddd_start.member.applicaiton.model.joinCommand;
@@ -25,12 +26,13 @@ public class JoinMemberService {
 
   @Transactional
   public joinResponse joinMember(joinCommand req)
-      throws DuplicateEmailException, DuplicateUsernameException {
+      throws DuplicateEmailException, DuplicateUsernameException, InvalidUsernameLengthException {
     //값의 형식 검사
     checkEmpty(req.getEmail(), "email");
     checkEmpty(req.getPassword(), "password");
     checkEmpty(req.getUsername(), "username");
     checkEmpty(req.getRole(), "role");
+    checkUsernameLength(req.getUsername());
 
     //로직 검사
     checkDuplicatedEmail(req.getEmail());
@@ -71,7 +73,13 @@ public class JoinMemberService {
 
   private void checkEmpty(String value, String propertyName) {
     if (value == null || value.isEmpty()) {
-      throw new NullPointerException(propertyName);
+      throw new IllegalArgumentException(propertyName + "을(를) 입력해주세요.");
+    }
+  }
+
+  private void checkUsernameLength(String username) throws InvalidUsernameLengthException {
+    if (username != null && username.length() > 10) {
+      throw new InvalidUsernameLengthException();
     }
   }
 }
